@@ -1,29 +1,29 @@
-// class representing a single gate in the tensor network
+// class representing a single tensor in the tensor network
 
-#ifndef _GATE_HH
-#define _GATE_HH
+#ifndef _TENSOR_HH
+#define _TENSOR_HH
 
 #include <complex>
 #include <initializer_list>
 #include <vector>
 #include <gsl/gsl_matrix.h>
 
-// A single gate in the tensor network.  In a MERA this will be either
-// a disentangler or an isometry gate.  Note that the input indicates
-// the direction of *greater* renormalization flow.
-class gate
+// A single tensor in the tensor network.  Note that, when the tensor
+// represents a gate in a MERA the input should indicate the direction
+// of *greater* renormalization flow.
+class tensor
 {
 public:
   // Constructors and destructor.
-  gate(int nin, int nout, int inrank, int outrank);
-  gate(int nin, int nout, int rank) : gate(nin, nout, rank, rank) {}
-  gate& operator=(const gate&) = delete;
-  gate(const gate&) = delete;
-  virtual ~gate();
+  tensor(int nin, int nout, int inrank, int outrank);
+  tensor(int nin, int nout, int rank) : tensor(nin, nout, rank, rank) {}
+  tensor& operator=(const tensor&) = delete;
+  tensor(const tensor&) = delete;
+  virtual ~tensor();
   // Create a copy which shares the underlying matrix.
-  virtual gate *shallow_copy();
-  // Create a shallow copy using the matrix' Hermitian conjugate.
-  virtual gate *shallow_copy_conjugate();
+  virtual tensor *shallow_copy();
+  // Create a shallow copy using the matrix' Hermitian conjutensor.
+  virtual tensor *shallow_copy_conjugate();
   // Get or set the entry corresponding to the defined inputs and
   // outputs.  These functions must ensure that the input list is the
   // proper length.
@@ -35,15 +35,15 @@ public:
 		 const std::vector<int>& out, complex<double> val);
   virtual void set_entry(std::initializer_list<int>& in,
 		 std::initializer_list<int>& out, complex<double> val);
-  // Set input (output) n to correspond to output (input) m on gate g.
-  // This function must ensure the gates are compatible (built from
+  // Set input (output) n to correspond to output (input) m on tensor g.
+  // This function must ensure the tensors are compatible (built from
   // same-ranked vector spaces) and set the links in both directions.
-  virtual void set_input(int n, gate *g, int m);
-  virtual void set_output(int n, gate *g, int m);
-  // Get gate and output (input) number associated with an input
+  virtual void set_input(int n, tensor *g, int m);
+  virtual void set_output(int n, tensor *g, int m);
+  // Get tensor and output (input) number associated with an input
   // (output).
-  virtual gate* input_gate(int n);
-  virtual gate* output_gate(int n);
+  virtual tensor* input_tensor(int n);
+  virtual tensor* output_tensor(int n);
   virtual int input_num(int n);
   virtual int output_num(int n);
 protected:
@@ -53,11 +53,11 @@ private:
   int _nin;
   int _nout;
   // The following pointers represent arrays which encode the
-  // placement of this gate in the tensor network.  Specifically,
-  // input n of this gate is connected to output _indest[n] of gate
+  // placement of this tensor in the tensor network.  Specifically,
+  // input n of this tensor is connected to output _indest[n] of tensor
   // _in[n].  _out and _outdest work analogously.
-  gate* _in;
-  gate* _out;
+  tensor* _in;
+  tensor* _out;
   int* _indest;
   int* _outdest;
   // Rank of input and output vector spaces.  In a MERA, the bottom
@@ -75,4 +75,4 @@ private:
 
 };
 
-#endif // _GATE_HH
+#endif // _TENSOR_HH
