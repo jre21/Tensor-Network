@@ -12,7 +12,7 @@ LINK=	clang++
 CPPFLAGS += -isystem $(GTEST_DIR)/include
 CXXFLAGS += -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual \
 	-Wcast-align -Wwrite-strings -fshort-enums -fno-common \
-	-O3 -DHAVE_INLINE -stdlib=libc++ -pthread
+	-O4 -DHAVE_INLINE -stdlib=libc++ -pthread
 
 ifdef DEBUG
 CXXFLAGS += -g -O0 -DDEBUG=1
@@ -28,22 +28,26 @@ GTEST_DIR = /usr/src/gtest
 GTEST_HEADERS = /usr/include/gtest/*.h \
                 /usr/include/gtest/internal/*.h
 
-# object files to generate
+# object files to generate, should be named ${foo}.o where source file
+# is ${foo}.c
 ODIR	= obj
 _OBJ	= 
 OBJ	= $(patsubst %,$(ODIR)/%,$(_OBJ))
-# file containing main function (excluded from tests)
+# file containing main() (excluded from test binary, which defines its
+# own main() )
 _MAIN	= 
 MAIN	= $(patsubst %,$(ODIR)/%,$(_OBJ))
-# test cases
-_TESTS	= 
+# test cases for code in ${foo}.cc should be named ${foo}_test.cc and
+# placed in TDIR
+TDIR	= tests
+_TESTS	= main_test.o
 TESTS	= $(patsubst %,$(ODIR)/%,$(_TESTS))
 
 # main and unit test binaries
-BIN	= mera
-TEST	= mera_test
+BIN	= tensor
+TEST	= tensor_test
 
-GENERATED = $(OBJ) $(BIN)
+GENERATED = $(OBJ) $(BIN) $(TESTS)
 
 #
 #	targets
@@ -62,7 +66,7 @@ check	:	$(TEST)
 $(BIN)	:	$(OBJ) $(MAIN)
 	$(LINK) -o $@ $^ $(CXXFLAGS) $(LDLIBS)
 
-$(TEST)	:	$(OBJ) $(TESTS) gtest_main.a
+$(TEST)	:	$(OBJ) $(TESTS) gtest.a
 	$(LINK) -o $@ $^ $(CXXFLAGS) $(LDLIBS) $(LDLIBS_TEST)
 
 .PHONY	:	objs
@@ -71,12 +75,11 @@ objs	:	$(OBJ)
 $(ODIR)/%.o : %.cc %.d
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
+$(ODIR)/%_test.o : $(TDIR)/%_test.cc $(TDIR)/%_test.d
+	$(CXX) -c -o $@ $< $(CXXFLAGS)
+
 %.d	:	%.cc
 	$(SHELL) -ec '$(CXX) -M $(CPPFLAGS) $< | sed '\"s/$*.o/& $@/g'\" > $@'
-
-# files with minimal dependencies but are expensive to recompile
-#$(ODIR)/matrix_term_%.o : matrix_term_%.cc matrix_term.hh defs.hh $(DEFNS)
-#	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 # For simplicity and to avoid depending on Google Test's
 # implementation details, the dependencies specified below are
