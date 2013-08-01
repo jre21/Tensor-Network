@@ -27,14 +27,14 @@ public:
   // Get or set the entry corresponding to the defined inputs and
   // outputs.  These functions must ensure that the input list is the
   // proper length.
-  virtual complex<double> entry(const std::vector<int>& in,
+  virtual std::complex<double> entry(const std::vector<int>& in,
 			const std::vector<int>& out);
-  virtual complex<double> entry(std::initializer_list<int>& in,
+  virtual std::complex<double> entry(std::initializer_list<int>& in,
 			std::initializer_list<int>& out);
   virtual void set_entry(const std::vector<int>& in,
-		 const std::vector<int>& out, complex<double> val);
+		 const std::vector<int>& out, std::complex<double> val);
   virtual void set_entry(std::initializer_list<int>& in,
-		 std::initializer_list<int>& out, complex<double> val);
+		 std::initializer_list<int>& out, std::complex<double> val);
   // Set input (output) n to correspond to output (input) m on tensor g.
   // This function must ensure the tensors are compatible (built from
   // same-ranked vector spaces) and set the links in both directions.
