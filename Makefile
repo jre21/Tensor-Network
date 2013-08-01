@@ -48,7 +48,7 @@ TESTS	= $(patsubst %,$(ODIR)/%$(TSUF).o,$(_TESTS))
 BIN	= tensor
 TEST	= tensor$(TSUF)
 
-GENERATED = obj/*.o *.a
+GENERATED = $(ODIR)/*.o *.a *.d $(TDIR)/*.d
 
 # targets
 .PHONY	:	all
@@ -89,8 +89,8 @@ include $(patsubst %,%.d,$(_OBJ)) $(patsubst %,%.d,$(_MAIN)) \
 # generate dependency information
 %.d	:	%.cc
 	@set -e; rm -f $@; \
-         $(CC) -M $(CPPFLAGS) $< > $@.$$$$; \
-         sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+         $(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
+         sed 's,\($(*F)\)\.o[ :]*,$(ODIR)/\1.o $@ : ,g' < $@.$$$$ > $@; \
          rm -f $@.$$$$
 
 # debugging and cleaning targets
