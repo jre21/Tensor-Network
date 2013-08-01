@@ -5,7 +5,7 @@ using std::initializer_list;
 using std::vector;
 
 // ########################### constructor ###########################
-Tensor::Tensor(int nin, int nout, int inrank, int outrank)
+Tensor::Tensor(size_t nin, size_t nout, size_t inrank, size_t outrank)
 {
 }
 
@@ -27,59 +27,59 @@ Tensor *Tensor::conjugate_of(Tensor *T)
 }
 
 // ########################### entry #################################
-complex<double> Tensor::entry(const vector<int>& in,
-			      const vector<int>& out)
+complex<double> Tensor::entry(const vector<size_t>& in,
+			      const vector<size_t>& out)
 {
   return complex<double>();
 }
 
-complex<double> Tensor::entry(initializer_list<int>& in,
-			      initializer_list<int>& out)
+complex<double> Tensor::entry(initializer_list<size_t>& in,
+			      initializer_list<size_t>& out)
 {
   return complex<double>();
 }
 
 // ########################### set_entry #############################
-void Tensor::set_entry(const vector<int>& in,
-		       const vector<int>& out, complex<double> val)
+void Tensor::set_entry(const vector<size_t>& in,
+		       const vector<size_t>& out, complex<double> val)
 {
 }
 
-void Tensor::set_entry(initializer_list<int>& in,
-		       initializer_list<int>& out, complex<double> val)
+void Tensor::set_entry(initializer_list<size_t>& in,
+		       initializer_list<size_t>& out, complex<double> val)
 {
 }
 
 // ########################### set_input #############################
-void Tensor::set_input(int n, Tensor *g, int m)
+void Tensor::set_input(size_t n, Tensor *g, size_t m)
 {
 }
 
 // ########################### set_output ############################
-void Tensor::set_output(int n, Tensor *g, int m)
+void Tensor::set_output(size_t n, Tensor *g, size_t m)
 {
 }
 
 // ########################### input_tensor ##########################
-Tensor* Tensor::input_tensor(int n)
+Tensor* Tensor::input_tensor(size_t n)
 {
   return nullptr;
 }
 
 // ########################### output_tensor #########################
-Tensor* Tensor::output_tensor(int n)
+Tensor* Tensor::output_tensor(size_t n)
 {
   return nullptr;
 }
 
 // ########################### input_num #############################
-int Tensor::input_num(int n)
+size_t Tensor::input_num(size_t n)
 {
   return 0;
 }
 
 // ########################### output_num ############################
-int Tensor::output_num(int n)
+size_t Tensor::output_num(size_t n)
 {
   return 0;
 }
