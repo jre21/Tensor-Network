@@ -124,19 +124,19 @@ GMOCK_SRCS_ = $(GMOCK_DIR)/src/*.cc $(GMOCK_HEADERS)
 # compiles fast and for ordinary users its source rarely changes.
 $(ODIR)/gtest-all.o : $(GTEST_SRCS_) $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) \
-            -c -o $@ $(GTEST_DIR)/src/gtest-all.cc
+            -c -w -o $@ $(GTEST_DIR)/src/gtest-all.cc
 
 $(ODIR)/gtest_main.o : $(GTEST_SRCS_) $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) \
-            -c -o $@ $(GTEST_DIR)/src/gtest_main.cc
+            -c -w -o $@ $(GTEST_DIR)/src/gtest_main.cc
 
 $(ODIR)/gmock-all.o : $(GTEST_HEADERS) $(GMOCK_SRCS_)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) -I$(GMOCK_DIR) $(CXXFLAGS) \
-            -c -o $@ $(GMOCK_DIR)/src/gmock-all.cc
+            -c -w -o $@ $(GMOCK_DIR)/src/gmock-all.cc
 
 $(ODIR)/gmock_main.o : $(GTEST_HEADERS) $(GMOCK_SRCS_)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) -I$(GMOCK_DIR) $(CXXFLAGS) \
-            -c -o $@ $(GMOCK_DIR)/src/gmock_main.cc
+            -c -w -o $@ $(GMOCK_DIR)/src/gmock_main.cc
 
 gtest.a : $(ODIR)/gtest-all.o
 	$(AR) $(ARFLAGS) $@ $^
