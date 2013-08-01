@@ -8,8 +8,6 @@ class MockTensor : public Tensor
 {
 public:
   MockTensor() : Tensor(0,0,0,0) {}
-  MOCK_METHOD0(shallow_copy, Tensor *());
-  MOCK_METHOD0(shallow_copy_conjugate, Tensor *());
   MOCK_METHOD2(entry, std::complex<double>
 	       (const std::vector<int>& in, const std::vector<int>& out));
   MOCK_METHOD2(entry, std::complex<double>
