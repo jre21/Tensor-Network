@@ -1,5 +1,5 @@
-#ifndef _MOCK_TENSOR_HH
-#define _MOCK_TENSOR_HH
+#ifndef MOCK_TENSOR_HH_
+#define MOCK_TENSOR_HH_
 
 #include <gmock/gmock.h>
 #include "../tensor.hh"
@@ -30,4 +30,4 @@ public:
   MOCK_METHOD1(output_num, size_t(size_t n));
 };
 
-#endif // _MOCK_TENSOR_HH
+#endif // MOCK_TENSOR_HH_

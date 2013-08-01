@@ -1,7 +1,7 @@
 // class representing a single tensor in the tensor network
 
-#ifndef _TENSOR_HH
-#define _TENSOR_HH
+#ifndef TENSOR_HH_
+#define TENSOR_HH_
 
 #include <complex>
 #include <initializer_list>
@@ -48,11 +48,21 @@ public:
   virtual size_t input_num(size_t n);
   virtual size_t output_num(size_t n);
 protected:
-
+  
 private:
   // Number of input and output sites.
   size_t _nin;
   size_t _nout;
+  // Rank of input and output vector spaces.  In a MERA, the bottom
+  // level has output rank equal to that of the underlying vector
+  // space, and ranks grow when proceeding up through the network
+  // until saturating the rank of the tensor network itself.  As a
+  // result, the two ranks will often be the same.
+  int _inrank;
+  int _outrank;
+  // Flag which is set if this is the Hermitian conjugate of the
+  // underlying matrix.
+  bool _conjugate;
   // The following pointers represent arrays which encode the
   // placement of this tensor in the tensor network.  Specifically,
   // input n of this tensor is connected to output _indest[n] of tensor
@@ -61,19 +71,9 @@ private:
   Tensor* _out;
   std::vector<size_t> _indest;
   std::vector<size_t> _outdest;
-  // Rank of input and output vector spaces.  In a MERA, the bottom
-  // level has output rank equal to that of the underlying vector
-  // space, and ranks grow when proceeding up through the network
-  // until saturating the rank of the tensor network itself.  As a
-  // result, the two ranks will often be the same.
-  std::vector<size_t> _inrank;
-  std::vector<size_t> _outrank;
-  // Flag which is set if this is the Hermitian conjugate of the
-  // underlying matrix.
-  bool _conjugate;
   // The matrix itself.
-  gsl_matrix_complex *matrix;
+  gsl_matrix_complex *_matrix;
 
 };
 
-#endif // _TENSOR_HH
+#endif // TENSOR_HH_

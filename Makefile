@@ -23,15 +23,15 @@ ifdef DEBUG
 CXXFLAGS += -g -O0 -DDEBUG=1
 endif #DEBUG
 
-LDLIBS	= -ltcmalloc -lgsl -lcblas -latlas -lm
+LDLIBS	= -ltcmalloc -lgsl -lcblas -latlas -lm -lpthread
 # additional flags libraries needed for unit tests
-LDLIBS_TEST = -lpthread
+LDLIBS_TEST =
 
 
 # object files to generate, should be named ${foo}.o where source file
 # is ${foo}.c
 ODIR	= obj
-_OBJ	= tensor
+_OBJ	= tensor utils
 OBJ	= $(patsubst %,$(ODIR)/%.o,$(_OBJ))
 # file containing main() (excluded from test binary, which defines its
 # own main() )
@@ -56,15 +56,15 @@ all	:	$(BIN)
 
 .PHONY	:	run
 run	:	$(BIN)
-	./$^
+	./$<
 
 .PHONY	:	test
 test	:	$(TEST)
-	./$^
+	./$<
 
 .PHONY	:	check
 check	:	$(TEST)
-	./$^
+	./$<
 
 $(BIN)	:	$(OBJ) $(MAIN)
 	$(LINK) -o $@ $^ $(CPPFLAGS) $(CXXFLAGS) $(LDLIBS)
@@ -101,7 +101,7 @@ gdb	:	$(BIN)
 .PHONY	:	valgrind
 valgrind :	$(BIN)
 	valgrind --trace-children=yes --leak-check=full \
-		--show-reachable=yes ./$(BIN)
+		--show-reachable=yes ./$<
 
 .PHONY	:	clean
 clean	:

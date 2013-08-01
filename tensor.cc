@@ -1,4 +1,7 @@
+#include <cmath>
+#include <gsl/gsl_complex.h>
 #include "tensor.hh"
+#include "utils.hh"
 
 using std::complex;
 using std::initializer_list;
@@ -7,11 +10,35 @@ using std::vector;
 // ########################### constructor ###########################
 Tensor::Tensor(size_t nin, size_t nout, size_t inrank, size_t outrank)
 {
+  // initialize variables
+  _nin = nin;
+  _nout = nout;
+  _inrank = inrank;
+  _outrank = outrank;
+  _in = _out = nullptr;
+  _indest = vector<size_t>(nin,0);
+  _outdest = vector<size_t>(nout,0);
+  _conjugate = false;
+
+  // If any argument is 0, the matrix is empty.  We leave it null in this case.
+  if(nin != 0 && nout != 0 && inrank != 0 && outrank != 0)
+    {
+      // calculate powers by hand to avoid cast to floating point
+      int in = 1, out = 1;
+      for (int i=0; i<nin; i++) in *= inrank;
+      for (int i=0; i<nout; i++) out *= outrank;
+      _matrix = gsl_matrix_complex_alloc(in, out);
+      gsl_matrix_complex_set_identity(_matrix);
+    }
+  else 
+    _matrix = nullptr;
 }
 
 // ########################### destructor ############################
 Tensor::~Tensor()
 {
+  gsl_matrix_complex_free(_matrix);
+  _matrix = nullptr;
 }
 
 // ########################### copy_of ###############################
