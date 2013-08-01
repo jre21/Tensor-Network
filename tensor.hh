@@ -11,19 +11,19 @@
 // A single tensor in the tensor network.  Note that, when the tensor
 // represents a gate in a MERA the input should indicate the direction
 // of *greater* renormalization flow.
-class tensor
+class Tensor
 {
 public:
   // Constructors and destructor.
-  tensor(int nin, int nout, int inrank, int outrank);
-  tensor(int nin, int nout, int rank) : tensor(nin, nout, rank, rank) {}
-  tensor& operator=(const tensor&) = delete;
-  tensor(const tensor&) = delete;
-  virtual ~tensor();
+  Tensor(int nin, int nout, int inrank, int outrank);
+  Tensor(int nin, int nout, int rank) : Tensor(nin, nout, rank, rank) {}
+  Tensor& operator=(const Tensor&) = delete;
+  Tensor(const Tensor&) = delete;
+  virtual ~Tensor();
   // Create a copy which shares the underlying matrix.
-  virtual tensor *shallow_copy();
-  // Create a shallow copy using the matrix' Hermitian conjutensor.
-  virtual tensor *shallow_copy_conjugate();
+  virtual Tensor *shallow_copy();
+  // Create a shallow copy using the matrix' Hermitian conjugate.
+  virtual Tensor *shallow_copy_conjugate();
   // Get or set the entry corresponding to the defined inputs and
   // outputs.  These functions must ensure that the input list is the
   // proper length.
@@ -38,12 +38,12 @@ public:
   // Set input (output) n to correspond to output (input) m on tensor g.
   // This function must ensure the tensors are compatible (built from
   // same-ranked vector spaces) and set the links in both directions.
-  virtual void set_input(int n, tensor *g, int m);
-  virtual void set_output(int n, tensor *g, int m);
+  virtual void set_input(int n, Tensor *g, int m);
+  virtual void set_output(int n, Tensor *g, int m);
   // Get tensor and output (input) number associated with an input
   // (output).
-  virtual tensor* input_tensor(int n);
-  virtual tensor* output_tensor(int n);
+  virtual Tensor* input_tensor(int n);
+  virtual Tensor* output_tensor(int n);
   virtual int input_num(int n);
   virtual int output_num(int n);
 protected:
@@ -56,8 +56,8 @@ private:
   // placement of this tensor in the tensor network.  Specifically,
   // input n of this tensor is connected to output _indest[n] of tensor
   // _in[n].  _out and _outdest work analogously.
-  tensor* _in;
-  tensor* _out;
+  Tensor* _in;
+  Tensor* _out;
   int* _indest;
   int* _outdest;
   // Rank of input and output vector spaces.  In a MERA, the bottom

@@ -17,7 +17,7 @@ GMOCK_HEADERS = /usr/include/gmock/*.h \
 CPPFLAGS += -std=c++11
 CXXFLAGS += -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual \
 	-Wcast-align -Wwrite-strings -fshort-enums -fno-common \
-	-O3 -DHAVE_INLINE -stdlib=libstdc++ -pthread
+	-O3 -DHAVE_INLINE -stdlib=libc++ -pthread
 
 ifdef DEBUG
 CXXFLAGS += -g -O0 -DDEBUG=1
