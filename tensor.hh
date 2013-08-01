@@ -21,9 +21,9 @@ public:
   Tensor(const Tensor&) = delete;
   virtual ~Tensor();
   // Create a copy which shares the underlying matrix.
-  virtual Tensor *shallow_copy();
+  static Tensor *copy_of(Tensor *T);
   // Create a shallow copy using the matrix' Hermitian conjugate.
-  virtual Tensor *shallow_copy_conjugate();
+  static Tensor *conjugate_of(Tensor *T);
   // Get or set the entry corresponding to the defined inputs and
   // outputs.  These functions must ensure that the input list is the
   // proper length.

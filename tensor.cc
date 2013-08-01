@@ -1,5 +1,9 @@
 #include "tensor.hh"
 
+using std::complex;
+using std::initializer_list;
+using std::vector;
+
 // ########################### constructor ###########################
 Tensor::Tensor(int nin, int nout, int inrank, int outrank)
 {
@@ -10,41 +14,39 @@ Tensor::~Tensor()
 {
 }
 
-// ########################### shallow_copy ##########################
-Tensor *Tensor::shallow_copy()
+// ########################### copy_of ###############################
+Tensor *Tensor::copy_of(Tensor *T)
 {
   return nullptr;
 }
 
-// ########################### shallow_copy_conjugate ################
-Tensor *Tensor::shallow_copy_conjugate()
+// ########################### conjugate_of ##########################
+Tensor *Tensor::conjugate_of(Tensor *T)
 {
   return nullptr;
 }
 
 // ########################### entry #################################
-std::complex<double> Tensor::entry(const std::vector<int>& in,
-			      const std::vector<int>& out)
+complex<double> Tensor::entry(const vector<int>& in,
+			      const vector<int>& out)
 {
-  return std::complex<double>();
+  return complex<double>();
 }
 
-std::complex<double> Tensor::entry(std::initializer_list<int>& in,
-			      std::initializer_list<int>& out)
+complex<double> Tensor::entry(initializer_list<int>& in,
+			      initializer_list<int>& out)
 {
-  return std::complex<double>();
+  return complex<double>();
 }
 
 // ########################### set_entry #############################
-void Tensor::set_entry(const std::vector<int>& in,
-		       const std::vector<int>& out,
-		       std::complex<double> val)
+void Tensor::set_entry(const vector<int>& in,
+		       const vector<int>& out, complex<double> val)
 {
 }
 
-void Tensor::set_entry(std::initializer_list<int>& in,
-		       std::initializer_list<int>& out,
-		       std::complex<double> val)
+void Tensor::set_entry(initializer_list<int>& in,
+		       initializer_list<int>& out, complex<double> val)
 {
 }
 
