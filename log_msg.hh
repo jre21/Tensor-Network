@@ -3,7 +3,20 @@
 
 #include <iostream>
 
-const char* kUnknownFile = "unknown file";
+// strings for messages
+extern const char* kUnknownFile;
+extern const char* kErrListLength;
+extern const char* kErrBounds;
+
+#define LOG_MSG_(severity) \
+  LogMsg(LOG_##severity, __FILE__, __LINE__).GetStream()
+
+#ifdef DEBUG
+#define LOG_DEBUG_MSG(message) \
+  LOG_MSG_(DEBUG) << message
+#else
+#define LOG_DEBUG_MSG(message)
+#endif
 
 enum LogSeverity {
   LOG_DEBUG,
@@ -26,11 +39,9 @@ class LogMsg {
   ~LogMsg();
 
   ::std::ostream& GetStream() { return ::std::cerr; }
-  static const char* FormatFileLocation(const char* file, int line);
 
  private:
   const LogSeverity severity_;
 };
 
-
-#endif
+#endif // LOG_MSG_HH_

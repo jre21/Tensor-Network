@@ -74,7 +74,7 @@ TEST_F(TensorTest,Linking) {
   FAIL();
 }
 
-TEST_F(TensorDeathTest,InputOutput) {
+TEST_F(TensorDeathTest,Linking) {
   FAIL();
 }
 

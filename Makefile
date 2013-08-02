@@ -1,8 +1,9 @@
 SHELL=/bin/sh
 
-# version of c++ compiler and linker
+# version of c++ utilities
 CXX=	clang++
 LINK=	clang++
+DB=	lldb-3.3
 
 
 # location for gtest files
@@ -30,7 +31,7 @@ LDLIBS	= -ltcmalloc -lgsl -lcblas -latlas -lm -lpthread
 # object files to generate, should be named ${foo}.o where source file
 # is ${foo}.c
 ODIR	= obj
-_OBJ	= tensor utils messages
+_OBJ	= tensor utils log_msg
 OBJ	= $(patsubst %,$(ODIR)/%.o,$(_OBJ))
 # file containing main() (excluded from test binary, which defines its
 # own main() )
@@ -93,13 +94,13 @@ include $(patsubst %,%.d,$(_OBJ)) $(patsubst %,%.d,$(_MAIN)) \
          rm -f $@.$$$$
 
 # debugging and cleaning targets
-.PHONY	:	gdb
-gdb	:	$(BIN)
-	gdb $<
+.PHONY	:	debug
+debug	:	$(BIN)
+	$(DB) $<
 
-.PHONY	:	gdb_test
-gdb_test :	$(TEST)
-	gdb $<
+.PHONY	:	debug_test
+debug_test :	$(TEST)
+	$(DB) $<
 
 .PHONY	:	valgrind
 valgrind :	$(BIN)

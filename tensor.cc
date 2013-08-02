@@ -1,6 +1,6 @@
 #include <math.h>
 #include <gsl/gsl_complex.h>
-#include "messages.hh"
+#include "log_msg.hh"
 #include "tensor.hh"
 #include "utils.hh"
 
@@ -132,12 +132,15 @@ void Tensor::_set_entry(const vector<size_t>& in,
 size_t Tensor::_pack_input(const vector<size_t>& in)
 {
   if(in.size() != _nin)
-    ERROR(kErrListLength, "input to Tensor::_pack_input()");
+    LOG_MSG_(FATAL) << kErrListLength << "input to Tensor::_pack_input(): "
+      "expected length " << _nin << " but detected " << in.size();
   size_t ret = 0;
   for(size_t i = 0, mult = 1; i < _nin; i++, mult *= _inrank)
     {
       if(in[_nin-i-1] >= _inrank)
-	ERROR(kErrBounds, "input to Tensor::_pack_input()");
+	LOG_MSG_(FATAL) << kErrBounds << "input to Tensor::_pack_input(): "
+	  "element " << _nin-i-1 << " has value " << in[_nin-i-1] <<
+	  " which exceeds vector space rank of " << _inrank;
       ret += mult * in[_nin-i-1];
     }
   return ret;
@@ -150,7 +153,8 @@ vector<size_t> Tensor::_unpack_input(size_t in)
   for(size_t i = 0; i < _nin; i++, in /= _inrank)
     ret[_nin-i-1] = in % _inrank;
   if(in > 0)
-    ERROR(kErrBounds, "input to Tensor::_unpack_input");
+    LOG_MSG_(FATAL) << kErrBounds << "input to Tensor::_unpack_input()"
+      "exceeds vector space rank";
   return ret;
 }
 
@@ -158,12 +162,15 @@ vector<size_t> Tensor::_unpack_input(size_t in)
 size_t Tensor::_pack_output(const vector<size_t>& out)
 {
   if(out.size() != _nout)
-    ERROR(kErrListLength, "input to Tensor::_pack_output()");
+    LOG_MSG_(FATAL) << kErrListLength << "input to Tensor::_pack_output(): "
+      "expected length " << _nout << " but detected " << out.size();
   size_t ret = 0;
   for(size_t i = 0, mult = 1; i < _nout; i++, mult *= _outrank)
     {
       if(out[_nout-i-1] >= _outrank)
-	ERROR(kErrBounds, "input to Tensor::_pack_output()");
+	LOG_MSG_(FATAL) << kErrBounds << "input to Tensor::_pack_output(): "
+	  "element " << _nout-i-1 << " has value " << out[_nout-i-1] <<
+	  " which exceeds vector space rank of " << _outrank;
       ret += mult * out[_nout-i-1];
     }
   return ret;
@@ -176,6 +183,7 @@ vector<size_t> Tensor::_unpack_output(size_t out)
   for(size_t i = 0; i < _nout; i++, out /= _outrank)
     ret[_nout-i-1] = out % _outrank;
   if(out > 0)
-    ERROR(kErrBounds, "input to Tensor::_unpack_input");
+    LOG_MSG_(FATAL) << kErrBounds << "input to Tensor::_unpack_output()"
+      "exceeds vector space rank";
   return ret;
 }
