@@ -25,13 +25,12 @@ endif #DEBUG
 
 LDLIBS	= -ltcmalloc -lgsl -lcblas -latlas -lm -lpthread
 # additional flags libraries needed for unit tests
-LDLIBS_TEST =
 
 
 # object files to generate, should be named ${foo}.o where source file
 # is ${foo}.c
 ODIR	= obj
-_OBJ	= tensor utils
+_OBJ	= tensor utils messages
 OBJ	= $(patsubst %,$(ODIR)/%.o,$(_OBJ))
 # file containing main() (excluded from test binary, which defines its
 # own main() )
@@ -71,7 +70,7 @@ $(BIN)	:	$(OBJ) $(MAIN)
 
 $(TEST)	:	$(OBJ) $(TESTS) gmock_main.a
 	$(LINK) -o $@ $^ $(CPPFLAGS) $(CXXFLAGS) \
-	$(LDLIBS) $(LDLIBS_TEST)
+	$(LDLIBS)
 
 .PHONY	:	objs
 objs	:	$(OBJ)
@@ -96,7 +95,11 @@ include $(patsubst %,%.d,$(_OBJ)) $(patsubst %,%.d,$(_MAIN)) \
 # debugging and cleaning targets
 .PHONY	:	gdb
 gdb	:	$(BIN)
-	gdb ./$(BIN)
+	gdb $<
+
+.PHONY	:	gdb_test
+gdb_test :	$(TEST)
+	gdb $<
 
 .PHONY	:	valgrind
 valgrind :	$(BIN)

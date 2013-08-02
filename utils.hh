@@ -6,7 +6,7 @@
 #include <complex>
 
 // convert between C++ and GSL representations of complex numbers
-constexpr std::complex<double> complex_from_gsl(gsl_complex c);
+std::complex<double> complex_from_gsl(gsl_complex c);
 gsl_complex complex_to_gsl(std::complex<double> c);
 
 #endif // UTILS_HH_

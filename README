@@ -1,0 +1,1 @@
+Dependencies: clang, llvm-dev, libc++-dev, libc++abi-dev, libgoogle-perftools-dev, libatlas-base-dev, libgsl0dev, google-mock

@@ -48,7 +48,17 @@ public:
   virtual size_t input_num(size_t n);
   virtual size_t output_num(size_t n);
 protected:
-  
+  // methods interacting directly with underlying data
+  std::complex<double> _entry(const std::vector<size_t>& in,
+			      const std::vector<size_t>& out);
+  void _set_entry(const std::vector<size_t>& in,
+		  const std::vector<size_t>& out, std::complex<double> val);
+  // convert between tensor notation for the interface and matrix
+  // notation for underlying storage
+  size_t _pack_input(const std::vector<size_t>& in);
+  std::vector<size_t> _unpack_input(size_t in);
+  size_t _pack_output(const std::vector<size_t>& out);
+  std::vector<size_t> _unpack_output(size_t out);
 private:
   // Number of input and output sites.
   size_t _nin;
@@ -58,8 +68,8 @@ private:
   // space, and ranks grow when proceeding up through the network
   // until saturating the rank of the tensor network itself.  As a
   // result, the two ranks will often be the same.
-  int _inrank;
-  int _outrank;
+  size_t _inrank;
+  size_t _outrank;
   // Flag which is set if this is the Hermitian conjugate of the
   // underlying matrix.
   bool _conjugate;

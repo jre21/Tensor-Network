@@ -48,7 +48,7 @@ TEST_F(TensorTest,Entry) {
 
   T1->set_entry( {4,1}, {3,5,2}, complex<double>(3.14,2.718) );
   EXPECT_DOUBLE_EQ(3.14, T1->entry( {4,1}, {3,5,2} ).real() );
-  EXPECT_DOUBLE_EQ(2.178, T1->entry( {4,1}, {3,5,2} ).imag() );
+  EXPECT_DOUBLE_EQ(2.718, T1->entry( {4,1}, {3,5,2} ).imag() );
 }
 
 TEST_F(TensorDeathTest,Entry) {
