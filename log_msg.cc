@@ -17,10 +17,10 @@ LogMsg::LogMsg(LogSeverity severity, const char* file, int line)
   if(file == nullptr) file = kUnknownFile;
   if(line < 0)
     GetStream() << endl << marker << " "
-		<< file << ":: ";
+		<< file << ": ";
   else
     GetStream() << endl << marker << " "
-		<< file << ":" << line << ":: ";
+		<< file << ":" << line << ": ";
 }
 
 // Flushes the buffers and, if severity is LOG_FATAL, aborts the program.
