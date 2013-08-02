@@ -1,4 +1,4 @@
-#include <cmath>
+#include <math.h>
 #include <gsl/gsl_complex.h>
 #include "messages.hh"
 #include "tensor.hh"
