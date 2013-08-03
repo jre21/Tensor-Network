@@ -14,7 +14,8 @@ ConcreteTensor::ConcreteTensor(size_t nin, size_t nout,
   : _nin(nin), _nout(nout), _inrank(inrank), _outrank(outrank)
 {
   // initialize variables
-  _in = _out = nullptr;
+  _in = vector<Tensor*>(nin, nullptr);
+  _out = vector<Tensor*>(nout, nullptr);
   _indest = vector<size_t>(nin,0);
   _outdest = vector<size_t>(nout,0);
   _conjugate = false;
@@ -55,28 +56,42 @@ Tensor *ConcreteTensor::conjugate_of(Tensor *T)
   return nullptr;
 }
 
+// ###################################################################
+size_t ConcreteTensor::input_rank()
+{
+  return _inrank;
+}
+
+size_t ConcreteTensor::output_rank()
+{
+  return _outrank;
+}
+
+// ###################################################################
+
 // ########################### entry #################################
 complex<double> ConcreteTensor::entry(const vector<size_t>& in,
-			      const vector<size_t>& out)
+				      const vector<size_t>& out)
 {
   return _entry(in, out);
 }
 
 complex<double> ConcreteTensor::entry(initializer_list<size_t>& in,
-			      initializer_list<size_t>& out)
+				      initializer_list<size_t>& out)
 {
   return _entry( vector<size_t>(in), vector<size_t>(out) );
 }
 
 // ########################### set_entry #############################
 void ConcreteTensor::set_entry(const vector<size_t>& in,
-		       const vector<size_t>& out, complex<double> val)
+			       const vector<size_t>& out, complex<double> val)
 {
   _set_entry(in,out,val);
 }
 
 void ConcreteTensor::set_entry(initializer_list<size_t>& in,
-		       initializer_list<size_t>& out, complex<double> val)
+			       initializer_list<size_t>& out,
+			       complex<double> val)
 {
   _set_entry( vector<size_t>(in), vector<size_t>(out), val);
 }
@@ -126,7 +141,7 @@ complex<double> ConcreteTensor::_entry(const vector<size_t>& in,
 
 // ########################### _set_entry ############################
 void ConcreteTensor::_set_entry(const vector<size_t>& in,
-			const vector<size_t>& out, complex<double> val)
+				const vector<size_t>& out, complex<double> val)
 {
   gsl_matrix_complex_set( _matrix, _pack_input(in),
 			  _pack_output(out), complex_to_gsl(val) );
@@ -136,14 +151,16 @@ void ConcreteTensor::_set_entry(const vector<size_t>& in,
 size_t ConcreteTensor::_pack_input(const vector<size_t>& in)
 {
   if(in.size() != _nin)
-    LOG_MSG_(FATAL) << kErrListLength << "input to ConcreteTensor::_pack_input(): "
-      "expected length " << _nin << " but detected " << in.size();
+    LOG_MSG_(FATAL) << kErrListLength << "argument of "
+      "ConcreteTensor::_pack_input(): expected length " << _nin <<
+      " but detected " << in.size();
   size_t ret = 0;
   for(size_t i = 0, mult = 1; i < _nin; i++, mult *= _inrank)
     {
       if(in[_nin-i-1] >= _inrank)
-	LOG_MSG_(FATAL) << kErrBounds << "input to ConcreteTensor::_pack_input(): "
-	  "element " << _nin-i-1 << " has value " << in[_nin-i-1] <<
+	LOG_MSG_(FATAL) << kErrBounds << "argument of "
+	  "ConcreteTensor::_pack_input(): element " << _nin-i-1 <<
+	  " has value " << in[_nin-i-1] <<
 	  " which exceeds vector space rank of " << _inrank;
       ret += mult * in[_nin-i-1];
     }
@@ -157,8 +174,8 @@ vector<size_t> ConcreteTensor::_unpack_input(size_t in)
   for(size_t i = 0; i < _nin; i++, in /= _inrank)
     ret[_nin-i-1] = in % _inrank;
   if(in > 0)
-    LOG_MSG_(FATAL) << kErrBounds << "input to ConcreteTensor::_unpack_input()"
-      "exceeds vector space rank";
+    LOG_MSG_(FATAL) << kErrBounds << "argument of "
+      "ConcreteTensor::_unpack_input() exceeds vector space rank";
   return ret;
 }
 
@@ -166,14 +183,16 @@ vector<size_t> ConcreteTensor::_unpack_input(size_t in)
 size_t ConcreteTensor::_pack_output(const vector<size_t>& out)
 {
   if(out.size() != _nout)
-    LOG_MSG_(FATAL) << kErrListLength << "input to ConcreteTensor::_pack_output(): "
-      "expected length " << _nout << " but detected " << out.size();
+    LOG_MSG_(FATAL) << kErrListLength << "argument of "
+      "ConcreteTensor::_pack_output(): expected length " << _nout <<
+      " but detected " << out.size();
   size_t ret = 0;
   for(size_t i = 0, mult = 1; i < _nout; i++, mult *= _outrank)
     {
       if(out[_nout-i-1] >= _outrank)
-	LOG_MSG_(FATAL) << kErrBounds << "input to ConcreteTensor::_pack_output(): "
-	  "element " << _nout-i-1 << " has value " << out[_nout-i-1] <<
+	LOG_MSG_(FATAL) << kErrBounds << "argument of "
+	  "ConcreteTensor::_pack_output(): element " << _nout-i-1 <<
+	  " has value " << out[_nout-i-1] <<
 	  " which exceeds vector space rank of " << _outrank;
       ret += mult * out[_nout-i-1];
     }
@@ -187,17 +206,31 @@ vector<size_t> ConcreteTensor::_unpack_output(size_t out)
   for(size_t i = 0; i < _nout; i++, out /= _outrank)
     ret[_nout-i-1] = out % _outrank;
   if(out > 0)
-    LOG_MSG_(FATAL) << kErrBounds << "input to ConcreteTensor::_unpack_output()"
-      "exceeds vector space rank";
+    LOG_MSG_(FATAL) << kErrBounds << "argument of "
+      "ConcreteTensor::_unpack_output() exceeds vector space rank";
   return ret;
 }
 
 // ########################### _set_input_self########################
 void ConcreteTensor::_set_input_self(size_t n, Tensor *g, size_t m)
 {
+  if(n >= _nin)
+    LOG_MSG_(FATAL) << kErrBounds << "first argument of "
+      "ConcreteTensor::_set_input_self(): " << n <<
+      " exceeds input list length " << _nin;
+
+  _in[n] = g;
+  _indest[n] = m;
 }
 
 // ########################### _set_output_self ######################
 void ConcreteTensor::_set_output_self(size_t n, Tensor *g, size_t m)
 {
+  if(n >= _nout)
+    LOG_MSG_(FATAL) << kErrBounds << "first argument of "
+      "ConcreteTensor::_set_output_self(): " << n <<
+      " exceeds input list length " << _nin;
+
+  _out[n] = g;
+  _outdest[n] = m;
 }

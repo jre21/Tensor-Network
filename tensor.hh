@@ -15,6 +15,9 @@ class Tensor
 {
 public:
   virtual ~Tensor() {}
+  // Get the rank of the input and output vector spaces
+  virtual size_t input_rank() = 0;
+  virtual size_t output_rank() = 0;
   // Get or set the entry corresponding to the defined inputs and
   // outputs.  These functions must ensure that the input list is the
   // proper length.
@@ -56,24 +59,30 @@ public:
     : ConcreteTensor(nin, nout, rank, rank) {}
   ConcreteTensor& operator=(const Tensor&) = delete;
   ConcreteTensor(const Tensor&) = delete;
-  virtual ~ConcreteTensor();
-  // From interface Tensor.
+  ~ConcreteTensor();
+  // Return a shallow copy of either this tensor or its Hermitian
+  // conjugate, sharing the underlying matrix.
   static Tensor *copy_of(Tensor *T);
   static Tensor *conjugate_of(Tensor *T);
-  virtual std::complex<double> entry(const std::vector<size_t>& in,
-			const std::vector<size_t>& out);
-  virtual std::complex<double> entry(std::initializer_list<size_t>& in,
-			std::initializer_list<size_t>& out);
-  virtual void set_entry(const std::vector<size_t>& in,
-		 const std::vector<size_t>& out, std::complex<double> val);
-  virtual void set_entry(std::initializer_list<size_t>& in,
-		 std::initializer_list<size_t>& out, std::complex<double> val);
-  virtual void set_input(size_t n, Tensor *g, size_t m);
-  virtual void set_output(size_t n, Tensor *g, size_t m);
-  virtual Tensor* input_tensor(size_t n);
-  virtual Tensor* output_tensor(size_t n);
-  virtual size_t input_num(size_t n);
-  virtual size_t output_num(size_t n);
+  // From interface Tensor.
+  size_t input_rank() override;
+  size_t output_rank() override;
+  std::complex<double> entry(const std::vector<size_t>& in,
+			     const std::vector<size_t>& out) override;
+  std::complex<double> entry(std::initializer_list<size_t>& in,
+			     std::initializer_list<size_t>& out) override;
+  void set_entry(const std::vector<size_t>& in,
+		 const std::vector<size_t>& out,
+		 std::complex<double> val) override;
+  void set_entry(std::initializer_list<size_t>& in,
+		 std::initializer_list<size_t>& out,
+		 std::complex<double> val) override;
+  void set_input(size_t n, Tensor *g, size_t m) override;
+  void set_output(size_t n, Tensor *g, size_t m) override;
+  Tensor* input_tensor(size_t n) override;
+  Tensor* output_tensor(size_t n) override;
+  size_t input_num(size_t n) override;
+  size_t output_num(size_t n) override;
 protected:
   // Methods interacting directly with underlying data.
   std::complex<double> _entry(const std::vector<size_t>& in,
@@ -87,8 +96,8 @@ protected:
   size_t _pack_output(const std::vector<size_t>& out);
   std::vector<size_t> _unpack_output(size_t out);
   // From interface Tensor.
-  virtual void _set_input_self(size_t n, Tensor *g, size_t m) final;
-  virtual void _set_output_self(size_t n, Tensor *g, size_t m) final;
+  void _set_input_self(size_t n, Tensor *g, size_t m) override final;
+  void _set_output_self(size_t n, Tensor *g, size_t m) override final;
 private:
   // Number of input and output sites.
   size_t _nin;
@@ -107,8 +116,8 @@ private:
   // placement of this tensor in the tensor network.  Specifically,
   // input n of this tensor is connected to output _indest[n] of tensor
   // _in[n].  _out and _outdest work analogously.
-  Tensor* _in;
-  Tensor* _out;
+  std::vector<Tensor*> _in;
+  std::vector<Tensor*> _out;
   std::vector<size_t> _indest;
   std::vector<size_t> _outdest;
   // The matrix itself.

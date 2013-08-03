@@ -6,6 +6,8 @@
 using std::vector;
 using std::complex;
 
+using ::testing::Return;
+
 class TensorTest : public ::testing::Test {
 protected:
   virtual void SetUp()
@@ -74,6 +76,8 @@ TEST_F(TensorTest,Linking) {
   // verify input link is set correctly
   EXPECT_CALL(*T2, _set_output_self(2,T1,1))
     .Times(1);
+  EXPECT_CALL(*T2, output_rank())
+    .WillOnce(Return(6));
   T1->set_input(1,T2,2);
   ::testing::Mock::VerifyAndClear(T2);
   EXPECT_EQ(T2, T1->input_tensor(1));
@@ -94,6 +98,8 @@ TEST_F(TensorTest,Linking) {
   // verify output link is set correctly
   EXPECT_CALL(*T2, _set_input_self(0, T1, 1))
     .Times(1);
+  EXPECT_CALL(*T2, input_rank())
+    .WillOnce(Return(6));
   T1->set_output(1,T2,0);
   ::testing::Mock::VerifyAndClear(T2);
 
@@ -125,6 +131,19 @@ TEST_F(TensorDeathTest,Linking) {
   EXPECT_DEATH(T1->set_input(0,T1,3), "");
   EXPECT_DEATH(T1->set_output(3,T1,0), "");
   EXPECT_DEATH(T1->set_output(0,T1,2), "");
+
+  // crash when linking to a tensor with different vector space ranks
+  ON_CALL(*T2, input_rank())
+    .WillByDefault(Return(6));
+  ON_CALL(*T2, output_rank())
+    .WillByDefault(Return(5));
+  EXPECT_DEATH(T1->set_input(0,T2,0), "");
+
+  ON_CALL(*T2, input_rank())
+    .WillByDefault(Return(5));
+  ON_CALL(*T2, output_rank())
+    .WillByDefault(Return(6));
+  EXPECT_DEATH(T1->set_output(0,T2,0), "");
 }
 
 // test making copies of a tensor
