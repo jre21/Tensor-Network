@@ -35,7 +35,7 @@ public:
   virtual void set_input(size_t n, Tensor *g, size_t m) = 0;
   virtual void set_output(size_t n, Tensor *g, size_t m) = 0;
   // Get tensor and output (input) number associated with an input
-  // (output).
+  // (output).  If unset, return null and 0, respectively.
   virtual Tensor* input_tensor(size_t n) = 0;
   virtual Tensor* output_tensor(size_t n) = 0;
   virtual size_t input_num(size_t n) = 0;
@@ -75,9 +75,7 @@ public:
   virtual size_t input_num(size_t n);
   virtual size_t output_num(size_t n);
 protected:
-  // Methods interacting directly with underlying data.  Where these
-  // messages are virtual, they should only be overridden by mock
-  // objects.
+  // Methods interacting directly with underlying data.
   std::complex<double> _entry(const std::vector<size_t>& in,
 			      const std::vector<size_t>& out);
   void _set_entry(const std::vector<size_t>& in,
