@@ -7,7 +7,9 @@
 class MockTensor : public Tensor
 {
 public:
-  MockTensor() : Tensor(0,0,0,0) {}
+  MockTensor() {}
+  MOCK_METHOD1(copy_of, Tensor*(Tensor *T));
+  MOCK_METHOD1(conjugate_of, Tensor*(Tensor *T));
   MOCK_METHOD2(entry, std::complex<double>
 	       (const std::vector<size_t>& in,
 		const std::vector<size_t>& out));
@@ -28,6 +30,8 @@ public:
   MOCK_METHOD1(output_tensor, Tensor*(size_t n));
   MOCK_METHOD1(input_num, size_t(size_t n));
   MOCK_METHOD1(output_num, size_t(size_t n));
+  MOCK_METHOD3(_set_input_self, void(size_t n, Tensor *g, size_t m));
+  MOCK_METHOD3(_set_output_self, void(size_t n, Tensor *g, size_t m));
 };
 
 #endif // MOCK_TENSOR_HH_

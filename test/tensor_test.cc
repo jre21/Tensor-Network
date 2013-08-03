@@ -10,7 +10,7 @@ class TensorTest : public ::testing::Test {
 protected:
   virtual void SetUp()
   {
-    T1 = new Tensor(2, 3, 6, 6);
+    T1 = new ConcreteTensor(2, 3, 6, 6);
     T2 = new MockTensor();
   }
 

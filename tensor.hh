@@ -14,20 +14,52 @@
 class Tensor
 {
 public:
-  // Constructors and destructor.
-  Tensor(size_t nin, size_t nout, size_t inrank, size_t outrank);
-  Tensor(size_t nin, size_t nout, size_t rank)
-    : Tensor(nin, nout, rank, rank) {}
-  Tensor& operator=(const Tensor&) = delete;
-  Tensor(const Tensor&) = delete;
-  virtual ~Tensor();
-  // Create a copy which shares the underlying matrix.
-  static Tensor *copy_of(Tensor *T);
-  // Create a shallow copy using the matrix' Hermitian conjugate.
-  static Tensor *conjugate_of(Tensor *T);
+  virtual ~Tensor() {}
   // Get or set the entry corresponding to the defined inputs and
   // outputs.  These functions must ensure that the input list is the
   // proper length.
+  virtual std::complex<double> entry(const std::vector<size_t>& in,
+				     const std::vector<size_t>& out) = 0;
+  virtual std::complex<double> entry(std::initializer_list<size_t>& in,
+				     std::initializer_list<size_t>& out) = 0;
+  virtual void set_entry(const std::vector<size_t>& in,
+			 const std::vector<size_t>& out,
+			 std::complex<double> val) = 0;
+  virtual void set_entry(std::initializer_list<size_t>& in,
+			 std::initializer_list<size_t>& out,
+			 std::complex<double> val) = 0;
+  // Set input (output) n to correspond to output (input) m on tensor g.
+  // This function must ensure the tensors are compatible (built from
+  // same-ranked vector spaces) and set the links in both directions.
+  // If g is null, instead unset the input or output.
+  virtual void set_input(size_t n, Tensor *g, size_t m) = 0;
+  virtual void set_output(size_t n, Tensor *g, size_t m) = 0;
+  // Get tensor and output (input) number associated with an input
+  // (output).
+  virtual Tensor* input_tensor(size_t n) = 0;
+  virtual Tensor* output_tensor(size_t n) = 0;
+  virtual size_t input_num(size_t n) = 0;
+  virtual size_t output_num(size_t n) = 0;
+protected:
+  // Like set_(input|output) above, but setting only a single
+  // direction.  The above should call these functions on both objects.
+  virtual void _set_input_self(size_t n, Tensor *g, size_t m) = 0;
+  virtual void _set_output_self(size_t n, Tensor *g, size_t m) = 0;
+};
+
+class ConcreteTensor : public Tensor
+{
+public:
+  // Constructors and destructor.
+  ConcreteTensor(size_t nin, size_t nout, size_t inrank, size_t outrank);
+  ConcreteTensor(size_t nin, size_t nout, size_t rank)
+    : ConcreteTensor(nin, nout, rank, rank) {}
+  ConcreteTensor& operator=(const Tensor&) = delete;
+  ConcreteTensor(const Tensor&) = delete;
+  virtual ~ConcreteTensor();
+  // From interface Tensor.
+  static Tensor *copy_of(Tensor *T);
+  static Tensor *conjugate_of(Tensor *T);
   virtual std::complex<double> entry(const std::vector<size_t>& in,
 			const std::vector<size_t>& out);
   virtual std::complex<double> entry(std::initializer_list<size_t>& in,
@@ -36,19 +68,16 @@ public:
 		 const std::vector<size_t>& out, std::complex<double> val);
   virtual void set_entry(std::initializer_list<size_t>& in,
 		 std::initializer_list<size_t>& out, std::complex<double> val);
-  // Set input (output) n to correspond to output (input) m on tensor g.
-  // This function must ensure the tensors are compatible (built from
-  // same-ranked vector spaces) and set the links in both directions.
   virtual void set_input(size_t n, Tensor *g, size_t m);
   virtual void set_output(size_t n, Tensor *g, size_t m);
-  // Get tensor and output (input) number associated with an input
-  // (output).
   virtual Tensor* input_tensor(size_t n);
   virtual Tensor* output_tensor(size_t n);
   virtual size_t input_num(size_t n);
   virtual size_t output_num(size_t n);
 protected:
-  // methods interacting directly with underlying data
+  // Methods interacting directly with underlying data.  Where these
+  // messages are virtual, they should only be overridden by mock
+  // objects.
   std::complex<double> _entry(const std::vector<size_t>& in,
 			      const std::vector<size_t>& out);
   void _set_entry(const std::vector<size_t>& in,
@@ -59,6 +88,9 @@ protected:
   std::vector<size_t> _unpack_input(size_t in);
   size_t _pack_output(const std::vector<size_t>& out);
   std::vector<size_t> _unpack_output(size_t out);
+  // From interface Tensor.
+  virtual void _set_input_self(size_t n, Tensor *g, size_t m) final;
+  virtual void _set_output_self(size_t n, Tensor *g, size_t m) final;
 private:
   // Number of input and output sites.
   size_t _nin;
@@ -83,7 +115,6 @@ private:
   std::vector<size_t> _outdest;
   // The matrix itself.
   gsl_matrix_complex *_matrix;
-
 };
 
 #endif // TENSOR_HH_
