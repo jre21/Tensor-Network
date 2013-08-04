@@ -93,41 +93,59 @@ void ConcreteTensor::set_entry(initializer_list<size_t>& in,
 			       initializer_list<size_t>& out,
 			       complex<double> val)
 {
-  _set_entry( vector<size_t>(in), vector<size_t>(out), val);
+  _set_entry(vector<size_t>(in), vector<size_t>(out), val);
 }
 
 // ########################### set_input #############################
-void ConcreteTensor::set_input(size_t n, Tensor *g, size_t m)
+void ConcreteTensor::set_input(size_t n, Tensor *T, size_t m)
 {
+  _set_input(n, T, m);
 }
 
 // ########################### set_output ############################
-void ConcreteTensor::set_output(size_t n, Tensor *g, size_t m)
+void ConcreteTensor::set_output(size_t n, Tensor *T, size_t m)
 {
+  _set_output(n, T, m);
 }
 
 // ########################### input_tensor ##########################
 Tensor* ConcreteTensor::input_tensor(size_t n)
 {
-  return nullptr;
+  if(n >= _nin)
+    LOG_MSG_(FATAL) << kErrBounds << "argument of "
+      "ConcreteTensor::input_tensor(): " << n <<
+      " exceeds input list length " << _nin;
+  return _in[n];
 }
 
 // ########################### output_tensor #########################
 Tensor* ConcreteTensor::output_tensor(size_t n)
 {
-  return nullptr;
+  if(n >= _nout)
+    LOG_MSG_(FATAL) << kErrBounds << "argument of "
+      "ConcreteTensor::output_tensor(): " << n <<
+      " exceeds output list length " << _nout;
+  return _out[n];
 }
 
 // ########################### input_num #############################
 size_t ConcreteTensor::input_num(size_t n)
 {
-  return 0;
+  if(n >= _nin)
+    LOG_MSG_(FATAL) << kErrBounds << "argument of "
+      "ConcreteTensor::input_num(): " << n <<
+      " exceeds input list length " << _nin;
+  return _indest[n];
 }
 
 // ########################### output_num ############################
 size_t ConcreteTensor::output_num(size_t n)
 {
-  return 0;
+  if(n >= _nout)
+    LOG_MSG_(FATAL) << kErrBounds << "argument of "
+      "ConcreteTensor::output_num(): " << n <<
+      " exceeds output list length " << _nout;
+  return _outdest[n];
 }
 
 // ########################### _entry ################################
@@ -211,26 +229,48 @@ vector<size_t> ConcreteTensor::_unpack_output(size_t out)
   return ret;
 }
 
-// ########################### _set_input_self########################
-void ConcreteTensor::_set_input_self(size_t n, Tensor *g, size_t m)
+// ########################### _set_input ############################
+void ConcreteTensor::_set_input(size_t n, Tensor *T, size_t m)
+{
+  if(input_rank() != T->output_rank())
+    LOG_MSG_(FATAL) << kErrIncompatible << "tensor arguments passed to "
+      "ConcreteTensor::_set_input() have differing vector space ranks: " <<
+      input_rank() << " and " << T->output_rank();
+  _set_input_self(n, T, m);
+  Tensor::_set_output(T, m, this, n);
+}
+
+// ########################### _set_output ###########################
+void ConcreteTensor::_set_output(size_t n, Tensor *T, size_t m)
+{
+  if(output_rank() != T->input_rank())
+    LOG_MSG_(FATAL) << kErrIncompatible << "tensor arguments passed to "
+      "ConcreteTensor::_set_output() have differing vector space ranks: " <<
+      output_rank() << " and " << T->input_rank();
+  _set_output_self(n, T, m);
+  Tensor::_set_input(T, m, this, n);
+}
+
+// ########################### _set_input_self #######################
+void ConcreteTensor::_set_input_self(size_t n, Tensor *T, size_t m)
 {
   if(n >= _nin)
     LOG_MSG_(FATAL) << kErrBounds << "first argument of "
       "ConcreteTensor::_set_input_self(): " << n <<
       " exceeds input list length " << _nin;
 
-  _in[n] = g;
+  _in[n] = T;
   _indest[n] = m;
 }
 
 // ########################### _set_output_self ######################
-void ConcreteTensor::_set_output_self(size_t n, Tensor *g, size_t m)
+void ConcreteTensor::_set_output_self(size_t n, Tensor *T, size_t m)
 {
   if(n >= _nout)
     LOG_MSG_(FATAL) << kErrBounds << "first argument of "
       "ConcreteTensor::_set_output_self(): " << n <<
-      " exceeds input list length " << _nin;
+      " exceeds output list length " << _nout;
 
-  _out[n] = g;
+  _out[n] = T;
   _outdest[n] = m;
 }

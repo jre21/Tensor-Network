@@ -4,8 +4,9 @@
 using std::endl;
 
 const char* kUnknownFile = "unknown file";
-const char* kErrListLength = "list has illegal length: ";
 const char* kErrBounds = "argument out of bounds: ";
+const char* kErrIncompatible = "incompatible objects: ";
+const char* kErrListLength = "list has illegal length: ";
 
 LogMsg::LogMsg(LogSeverity severity, const char* file, int line)
     : severity_(severity) {

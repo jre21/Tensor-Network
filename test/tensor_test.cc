@@ -6,23 +6,24 @@
 using std::vector;
 using std::complex;
 
+using ::testing::AtLeast;
+using ::testing::Mock;
 using ::testing::Return;
+using ::testing::_;
 
 class TensorTest : public ::testing::Test {
 protected:
   virtual void SetUp()
   {
     T1 = new ConcreteTensor(2, 3, 6, 6);
-    T2 = new MockTensor();
   }
 
   virtual void TearDown()
   {
     delete T1;
-    delete T2;
   }
   Tensor *T1;
-  MockTensor *T2;
+  MockTensor mock;
 };
 typedef TensorTest TensorDeathTest;
 
@@ -71,16 +72,32 @@ TEST_F(TensorDeathTest,Entry) {
 			   vector<size_t>({2,0,4}), complex<double>() ), "");
 }
 
+TEST_F(TensorTest,IsolateCrash) {
+  EXPECT_CALL(mock, _set_output_self(_,nullptr,_))
+    .Times(AtLeast(0));
+  EXPECT_CALL(mock, _set_output_self(_,T1,_))
+    .Times(AtLeast(0));
+  EXPECT_CALL(mock, output_rank())
+    .WillRepeatedly(Return(6));
+  printf("crash marker 1\n");
+  mock._set_output_self(0,nullptr,0);
+  printf("crash marker 2\n");
+  mock._set_output_self(0,T1,0);
+  printf("crash marker 3\n");
+  mock.set_input(1,&mock,2);
+  printf("crash marker 4\n");
+}
+
+
 // test linking tensors together
 TEST_F(TensorTest,Linking) {
   // verify input link is set correctly
-  EXPECT_CALL(*T2, _set_output_self(2,T1,1))
-    .Times(1);
-  EXPECT_CALL(*T2, output_rank())
+  EXPECT_CALL(mock, _set_output_self(2,T1,1));
+  EXPECT_CALL(mock, output_rank())
     .WillOnce(Return(6));
-  T1->set_input(1,T2,2);
-  ::testing::Mock::VerifyAndClear(T2);
-  EXPECT_EQ(T2, T1->input_tensor(1));
+  T1->set_input(1,&mock,2);
+  Mock::VerifyAndClear(&mock);
+  EXPECT_EQ(&mock, T1->input_tensor(1));
   EXPECT_EQ(2, T1->input_num(1));
 
   // verify result of unset input link
@@ -88,30 +105,27 @@ TEST_F(TensorTest,Linking) {
   EXPECT_EQ(0, T1->input_num(0));
 
   // verify unsetting link works correctly
-  EXPECT_CALL(*T2, _set_output_self(2,nullptr,0))
-    .Times(1);
+  EXPECT_CALL(mock, _set_output_self(2,nullptr,0));
   T1->set_input(1,nullptr,2);
-  ::testing::Mock::VerifyAndClear(T2);
+  Mock::VerifyAndClear(&mock);
   EXPECT_EQ(nullptr, T1->input_tensor(1));
   EXPECT_EQ(0, T1->input_num(1));
 
   // verify output link is set correctly
-  EXPECT_CALL(*T2, _set_input_self(0, T1, 1))
-    .Times(1);
-  EXPECT_CALL(*T2, input_rank())
+  EXPECT_CALL(mock, _set_input_self(0, T1, 1));
+  EXPECT_CALL(mock, input_rank())
     .WillOnce(Return(6));
-  T1->set_output(1,T2,0);
-  ::testing::Mock::VerifyAndClear(T2);
+  T1->set_output(1,&mock,0);
+  Mock::VerifyAndClear(&mock);
 
   // verify result of unset output link
   EXPECT_EQ(nullptr, T1->output_tensor(2));
   EXPECT_EQ(0, T1->output_tensor(2));
 
   // verify unsetting link works correctly
-  EXPECT_CALL(*T2, _set_input_self(0,nullptr,0))
-    .Times(1);
+  EXPECT_CALL(mock, _set_input_self(0,nullptr,0));
   T1->set_output(1,nullptr,0);
-  ::testing::Mock::VerifyAndClear(T2);
+  Mock::VerifyAndClear(&mock);
   EXPECT_EQ(nullptr, T1->output_tensor(1));
   EXPECT_EQ(0, T1->input_num(1));
 
@@ -123,6 +137,7 @@ TEST_F(TensorTest,Linking) {
   EXPECT_EQ(0, T1->output_num(1));
 }
 
+
 TEST_F(TensorDeathTest,Linking) {
   // crash when exceeding list length
   EXPECT_DEATH(T1->input_num(2), "");
@@ -133,17 +148,17 @@ TEST_F(TensorDeathTest,Linking) {
   EXPECT_DEATH(T1->set_output(0,T1,2), "");
 
   // crash when linking to a tensor with different vector space ranks
-  ON_CALL(*T2, input_rank())
-    .WillByDefault(Return(6));
-  ON_CALL(*T2, output_rank())
-    .WillByDefault(Return(5));
-  EXPECT_DEATH(T1->set_input(0,T2,0), "");
+  EXPECT_CALL(mock, input_rank())
+    .Times(0);
+  EXPECT_CALL(mock, output_rank())
+    .Times(AtLeast(0)).WillOnce(Return(5));
+  EXPECT_DEATH(T1->set_input(0,&mock,0), "");
 
-  ON_CALL(*T2, input_rank())
-    .WillByDefault(Return(5));
-  ON_CALL(*T2, output_rank())
-    .WillByDefault(Return(6));
-  EXPECT_DEATH(T1->set_output(0,T2,0), "");
+  EXPECT_CALL(mock, input_rank())
+    .Times(AtLeast(0)).WillOnce(Return(5));
+  EXPECT_CALL(mock, output_rank())
+    .Times(0);
+  EXPECT_DEATH(T1->set_output(0,&mock,0), "");
 }
 
 // test making copies of a tensor

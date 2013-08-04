@@ -35,8 +35,8 @@ public:
   // This function must ensure the tensors are compatible (built from
   // same-ranked vector spaces) and set the links in both directions.
   // If g is null, instead unset the input or output.
-  virtual void set_input(size_t n, Tensor *g, size_t m) = 0;
-  virtual void set_output(size_t n, Tensor *g, size_t m) = 0;
+  virtual void set_input(size_t n, Tensor *T, size_t m) = 0;
+  virtual void set_output(size_t n, Tensor *T, size_t m) = 0;
   // Get tensor and output (input) number associated with an input
   // (output).  If unset, return null and 0, respectively.
   virtual Tensor* input_tensor(size_t n) = 0;
@@ -46,8 +46,12 @@ public:
 protected:
   // Like set_(input|output) above, but setting only a single
   // direction.  The above should call these functions on both objects.
-  virtual void _set_input_self(size_t n, Tensor *g, size_t m) = 0;
-  virtual void _set_output_self(size_t n, Tensor *g, size_t m) = 0;
+  virtual void _set_input_self(size_t n, Tensor *T, size_t m) = 0;
+  virtual void _set_output_self(size_t n, Tensor *T, size_t m) = 0;
+  static void _set_input(Tensor *T, size_t n, Tensor *TT, size_t m)
+  { T->_set_input_self(n,TT,m); }
+  static void _set_output(Tensor *T, size_t n, Tensor *TT, size_t m)
+  { T->_set_output_self(n,TT,m); }
 };
 
 class ConcreteTensor : public Tensor
@@ -77,8 +81,8 @@ public:
   void set_entry(std::initializer_list<size_t>& in,
 		 std::initializer_list<size_t>& out,
 		 std::complex<double> val) override;
-  void set_input(size_t n, Tensor *g, size_t m) override;
-  void set_output(size_t n, Tensor *g, size_t m) override;
+  void set_input(size_t n, Tensor *T, size_t m) override;
+  void set_output(size_t n, Tensor *T, size_t m) override;
   Tensor* input_tensor(size_t n) override;
   Tensor* output_tensor(size_t n) override;
   size_t input_num(size_t n) override;
@@ -89,15 +93,19 @@ protected:
 			      const std::vector<size_t>& out);
   void _set_entry(const std::vector<size_t>& in,
 		  const std::vector<size_t>& out, std::complex<double> val);
-  // convert between tensor notation for the interface and matrix
-  // notation for underlying storage
+  // Convert between tensor notation for the interface and matrix
+  // notation for underlying storage.
   size_t _pack_input(const std::vector<size_t>& in);
   std::vector<size_t> _unpack_input(size_t in);
   size_t _pack_output(const std::vector<size_t>& out);
   std::vector<size_t> _unpack_output(size_t out);
+  // Check that the two tensors are compatible, and link them for
+  // multiplication.
+  void _set_input(size_t n, Tensor *T, size_t m);
+  void _set_output(size_t n, Tensor *T, size_t m);
   // From interface Tensor.
-  void _set_input_self(size_t n, Tensor *g, size_t m) override final;
-  void _set_output_self(size_t n, Tensor *g, size_t m) override final;
+  void _set_input_self(size_t n, Tensor *T, size_t m) override final;
+  void _set_output_self(size_t n, Tensor *T, size_t m) override final;
 private:
   // Number of input and output sites.
   size_t _nin;

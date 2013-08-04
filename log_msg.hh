@@ -5,8 +5,9 @@
 
 // strings for messages
 extern const char* kUnknownFile;
-extern const char* kErrListLength;
 extern const char* kErrBounds;
+extern const char* kErrIncompatible;
+extern const char* kErrListLength;
 
 #define LOG_MSG_(severity) \
   LogMsg(LOG_##severity, __FILE__, __LINE__).GetStream()

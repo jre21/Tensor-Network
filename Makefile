@@ -1,10 +1,15 @@
-SHELL=/bin/sh
+SHELL = /bin/sh
 
 # version of c++ utilities
-CXX=	clang++
-LINK=	clang++
-DB=	lldb-3.3
+CXX = clang++
+LINK = clang++
+DB = lldb-3.3
 
+ifneq "$(target)" "release"
+ifneq "$(target)" "debug"
+override target = testing
+endif # target != debug
+endif # target != release
 
 # location for gtest files
 GTEST_DIR = /usr/src/gtest
@@ -15,44 +20,58 @@ GMOCK_HEADERS = /usr/include/gmock/*.h \
                 /usr/include/gmock/internal/*.h
 
 # compiler flags
-CPPFLAGS += -std=c++11
-CXXFLAGS += -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual \
-	-Wcast-align -Wwrite-strings -fshort-enums -fno-common \
-	-pedantic -O3 -DHAVE_INLINE -stdlib=libc++ -pthread
+CPPFLAGS = -std=c++11 -pthread -DHAVE_INLINE
+CXXFLAGS = -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual \
+           -Wcast-align -Wwrite-strings -fshort-enums -fno-common \
+           -pedantic -stdlib=libc++
+LDFLAGS = -stdlib=libc++
+LDLIBS = -ltcmalloc -lgsl -lcblas -latlas -lm -lpthread
 
-ifdef DEBUG
+ifeq "$(target)" "release"
+CXXFLAGS += -O3
+endif # target == release
+ifeq "$(target)" "testing"
+CXXFLAGS += -O2 
+endif # target == testing
+ifeq "$(target)" "debug"
 CXXFLAGS += -g -O0 -DDEBUG=1
-endif #DEBUG
 
-ifndef RELEASE
-CXXFLAGS += -fsanitize=address -fsanitize=integer -fsanitize=undefined
-endif #RELEASE
-
-LDLIBS	= -ltcmalloc -lgsl -lcblas -latlas -lm -lpthread
-# additional flags libraries needed for unit tests
-
+endif # target == debug
+targets = release testing debug
 
 # object files to generate, should be named ${foo}.o where source file
 # is ${foo}.c
-ODIR	= obj
-_OBJ	= tensor utils log_msg
-OBJ	= $(patsubst %,$(ODIR)/%.o,$(_OBJ))
+_OBJ = tensor utils log_msg
+OBJ = $(patsubst %,$(target)/%.o,$(_OBJ))
+ALL_OBJ = $(foreach foo,$(targets),$(patsubst %,$(foo)/%.o,$(_OBJ)))
 # file containing main() (excluded from test binary, which defines its
 # own main() )
-_MAIN	= main
-MAIN	= $(patsubst %,$(ODIR)/%.o,$(_MAIN))
+_MAIN = main
+MAIN = $(patsubst %,$(target)/%.o,$(_MAIN))
+ALL_MAIN = $(foreach foo,$(targets),$(patsubst %,$(foo)/%.o,$(_MAIN)))
 # test cases for code in ${foo}.cc should be named ${foo}$(TSUF).cc
 # and placed in TDIR
-TDIR	= test
-TSUF	= _test
-_TESTS	= tensor
-TESTS	= $(patsubst %,$(ODIR)/%$(TSUF).o,$(_TESTS))
+TDIR = test
+TSUF = _test
+_TESTS = tensor
+TESTS = $(patsubst %,$(target)/%$(TSUF).o,$(_TESTS))
+ALL_TESTS = $(foreach foo,$(targets),$(patsubst %,$(foo)/%$(TSUF).o,$(_TESTS)))
 
 # main and unit test binaries
-BIN	= tensor
-TEST	= tensor$(TSUF)
+_BIN = tensor
+_TEST = tensor$(TSUF)
+BIN = $(_BIN)_$(target).bin
+TEST = $(_TEST)_$(target).bin
 
-GENERATED = $(ODIR)/*.o *.a *.d $(TDIR)/*.d
+# library files that shouldn't normally need to be rebuilt
+_LIBS = .a -all.o _main.a _main.o
+_LIB_OBJS = $(foreach lib,$(_LIBS),gmock$(lib) gtest$(lib))
+LIB_OBJS = $(foreach foo,$(targets),$(patsubst %,$(foo)/%,$(_LIB_OBJS)))
+
+# dependency files
+DEPS = $(patsubst %,%.d,$(_OBJ)) $(patsubst %,$(TDIR)/%$(TSUF).d,$(_TESTS))
+
+GENERATED = $(ALL_OBJ) $(ALL_MAIN) $(ALL_TESTS) $(LIB_OBJS) $(DEPS)
 
 # targets
 .PHONY	:	all
@@ -71,20 +90,19 @@ check	:	$(TEST)
 	./$<
 
 $(BIN)	:	$(OBJ) $(MAIN)
-	$(LINK) -o $@ $^ $(CPPFLAGS) $(CXXFLAGS) $(LDLIBS)
+	$(LINK) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-$(TEST)	:	$(OBJ) $(TESTS) gmock_main.a
-	$(LINK) -o $@ $^ $(CPPFLAGS) $(CXXFLAGS) \
-	$(LDLIBS)
+$(TEST)	:	$(OBJ) $(TESTS) $(target)/gmock_main.a
+	$(LINK) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 .PHONY	:	objs
 objs	:	$(OBJ)
 
-$(ODIR)/%.o : %.cc %.d
-	$(CXX) -c -o $@ $< $(CPPFLAGS) $(CXXFLAGS)
+$(target)/%.o : %.cc %.d
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
 
-$(ODIR)/%$(TSUF).o : $(TDIR)/%$(TSUF).cc $(TDIR)/%$(TSUF).d
-	$(CXX) -c -o $@ $< $(CPPFLAGS) $(CXXFLAGS)
+$(target)/%$(TSUF).o : $(TDIR)/%$(TSUF).cc $(TDIR)/%$(TSUF).d
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
 
 # include dependency information
 include $(patsubst %,%.d,$(_OBJ)) $(patsubst %,%.d,$(_MAIN)) \
@@ -94,7 +112,7 @@ include $(patsubst %,%.d,$(_OBJ)) $(patsubst %,%.d,$(_MAIN)) \
 %.d	:	%.cc
 	@set -e; rm -f $@; \
          $(CC) -MM $(CPPFLAGS) $< > $@.$$$$; \
-         sed 's,\($(*F)\)\.o[ :]*,$(ODIR)/\1.o $@ : ,g' < $@.$$$$ > $@; \
+         sed 's,\($(*F)\)\.o[ :]*,$(target)/\1.o $@ : ,g' < $@.$$$$ > $@; \
          rm -f $@.$$$$
 
 # debugging and cleaning targets
@@ -113,7 +131,7 @@ valgrind :	$(BIN)
 
 .PHONY	:	clean
 clean	:
-	-rm -f $(OBJ) $(MAIN) $(TESTS)
+	-rm -f $(ALL_OBJ) $(ALL_MAIN) $(ALL_TESTS)
 
 .PHONY	:	distclean
 distclean :
@@ -130,31 +148,31 @@ GMOCK_SRCS_ = $(GMOCK_DIR)/src/*.cc $(GMOCK_HEADERS)
 # implementation details, the dependencies specified below are
 # conservative and not optimized.  This is fine as Google Test
 # compiles fast and for ordinary users its source rarely changes.
-$(ODIR)/gtest-all.o : $(GTEST_SRCS_) $(GTEST_HEADERS)
+$(target)/gtest-all.o : $(GTEST_SRCS_) $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) \
             -c -w -o $@ $(GTEST_DIR)/src/gtest-all.cc
 
-$(ODIR)/gtest_main.o : $(GTEST_SRCS_) $(GTEST_HEADERS)
+$(target)/gtest_main.o : $(GTEST_SRCS_) $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) \
             -c -w -o $@ $(GTEST_DIR)/src/gtest_main.cc
 
-$(ODIR)/gmock-all.o : $(GTEST_HEADERS) $(GMOCK_SRCS_)
+$(target)/gmock-all.o : $(GTEST_HEADERS) $(GMOCK_SRCS_)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) -I$(GMOCK_DIR) $(CXXFLAGS) \
             -c -w -o $@ $(GMOCK_DIR)/src/gmock-all.cc
 
-$(ODIR)/gmock_main.o : $(GTEST_HEADERS) $(GMOCK_SRCS_)
+$(target)/gmock_main.o : $(GTEST_HEADERS) $(GMOCK_SRCS_)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) -I$(GMOCK_DIR) $(CXXFLAGS) \
             -c -w -o $@ $(GMOCK_DIR)/src/gmock_main.cc
 
-gtest.a : $(ODIR)/gtest-all.o
+$(target)/gtest.a : $(target)/gtest-all.o
 	$(AR) $(ARFLAGS) $@ $^
 
-gtest_main.a : $(ODIR)/gtest-all.o $(ODIR)/gtest_main.o
+$(target)/gtest_main.a : $(target)/gtest-all.o $(target)/gtest_main.o
 	$(AR) $(ARFLAGS) $@ $^
 
-gmock.a : $(ODIR)/gtest-all.o gmock-all.o
+$(target)/gmock.a : $(target)/gtest-all.o gmock-all.o
 	$(AR) $(ARFLAGS) $@ $^
 
-gmock_main.a : $(ODIR)/gtest-all.o $(ODIR)/gmock-all.o \
-		$(ODIR)/gmock_main.o
+$(target)/gmock_main.a : $(target)/gtest-all.o $(target)/gmock-all.o \
+		$(target)/gmock_main.o
 	$(AR) $(ARFLAGS) $@ $^
