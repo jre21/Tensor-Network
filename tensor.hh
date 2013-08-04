@@ -103,6 +103,9 @@ protected:
   // multiplication.
   void _set_input(size_t n, Tensor *T, size_t m);
   void _set_output(size_t n, Tensor *T, size_t m);
+  // Unlink the tensor connected on site n.
+  void _unset_input(size_t n);
+  void _unset_output(size_t n);
   // From interface Tensor.
   void _set_input_self(size_t n, Tensor *T, size_t m) override final;
   void _set_output_self(size_t n, Tensor *T, size_t m) override final;

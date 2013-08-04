@@ -11,20 +11,12 @@ override target = testing
 endif # target != debug
 endif # target != release
 
-# location for gtest files
-GTEST_DIR = /usr/src/gtest
-GTEST_HEADERS = /usr/include/gtest/*.h \
-                /usr/include/gtest/internal/*.h
-GMOCK_DIR = /usr/src/gmock
-GMOCK_HEADERS = /usr/include/gmock/*.h \
-                /usr/include/gmock/internal/*.h
-
 # compiler flags
 CPPFLAGS = -std=c++11 -pthread -DHAVE_INLINE
 CXXFLAGS = -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual \
            -Wcast-align -Wwrite-strings -fshort-enums -fno-common \
-           -pedantic -stdlib=libc++
-LDFLAGS = -stdlib=libc++
+           -pedantic -stdlib=libc++ -march=native
+LDFLAGS = -stdlib=libc++ -fuse-ld=gold
 LDLIBS = -ltcmalloc -lgsl -lcblas -latlas -lm -lpthread
 
 ifeq "$(target)" "release"
@@ -56,6 +48,10 @@ TSUF = _test
 _TESTS = tensor
 TESTS = $(patsubst %,$(target)/%$(TSUF).o,$(_TESTS))
 ALL_TESTS = $(foreach foo,$(targets),$(patsubst %,$(foo)/%$(TSUF).o,$(_TESTS)))
+MPRE = mock_
+_MOCKS = tensor
+MOCKS = $(patsubst %,$(target)/$(MPRE)%.o,$(_MOCKS))
+ALL_MOCKS = $(foreach foo,$(targets),$(patsubst %,$(foo)/$(MPRE)%.o,$(_MOCKS)))
 
 # main and unit test binaries
 _BIN = tensor
@@ -69,9 +65,12 @@ _LIB_OBJS = $(foreach lib,$(_LIBS),gmock$(lib) gtest$(lib))
 LIB_OBJS = $(foreach foo,$(targets),$(patsubst %,$(foo)/%,$(_LIB_OBJS)))
 
 # dependency files
-DEPS = $(patsubst %,%.d,$(_OBJ)) $(patsubst %,$(TDIR)/%$(TSUF).d,$(_TESTS))
+DEPS = $(patsubst %,%.d,$(_OBJ)) \
+       $(patsubst %,$(TDIR)/%$(TSUF).d,$(_TESTS)) \
+       $(patsubst %,$(TDIR)/$(MPRE)%.d,$(_MOCKS))
 
-GENERATED = $(ALL_OBJ) $(ALL_MAIN) $(ALL_TESTS) $(LIB_OBJS) $(DEPS)
+OBJECTS = $(ALL_OBJ) $(ALL_MAIN) $(ALL_TESTS) $(ALL_MOCKS)
+GENERATED = $(OBJECTS) $(LIB_OBJS) $(DEPS)
 
 # targets
 .PHONY	:	all
@@ -92,7 +91,7 @@ check	:	$(TEST)
 $(BIN)	:	$(OBJ) $(MAIN)
 	$(LINK) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-$(TEST)	:	$(OBJ) $(TESTS) $(target)/gmock_main.a
+$(TEST)	:	$(OBJ) $(TESTS) $(MOCKS) $(target)/gmock_main.a
 	$(LINK) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 .PHONY	:	objs
@@ -104,9 +103,13 @@ $(target)/%.o : %.cc %.d
 $(target)/%$(TSUF).o : $(TDIR)/%$(TSUF).cc $(TDIR)/%$(TSUF).d
 	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
 
+$(target)/$(MPRE)%.o : $(TDIR)/$(MPRE)%.cc $(TDIR)/$(MPRE)%.d
+	$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
+
 # include dependency information
 include $(patsubst %,%.d,$(_OBJ)) $(patsubst %,%.d,$(_MAIN)) \
-	$(patsubst %,$(TDIR)/%$(TSUF).d,$(_TESTS))
+	$(patsubst %,$(TDIR)/%$(TSUF).d,$(_TESTS)) \
+	$(patsubst %,$(TDIR)/$(MPRE)%.d,$(_MOCKS))
 
 # generate dependency information
 %.d	:	%.cc
@@ -131,13 +134,21 @@ valgrind :	$(BIN)
 
 .PHONY	:	clean
 clean	:
-	-rm -f $(ALL_OBJ) $(ALL_MAIN) $(ALL_TESTS)
+	-rm -f $(OBJECTS)
 
 .PHONY	:	distclean
 distclean :
 	-rm -f $(GENERATED)
 
 # Building Google Test and Google Mock
+
+# location for gtest files
+GTEST_DIR = /usr/src/gtest
+GTEST_HEADERS = /usr/include/gtest/*.h \
+                /usr/include/gtest/internal/*.h
+GMOCK_DIR = /usr/src/gmock
+GMOCK_HEADERS = /usr/include/gmock/*.h \
+                /usr/include/gmock/internal/*.h
 
 # Usually you shouldn't tweak such internal variables, indicated by a
 # trailing _.
