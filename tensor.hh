@@ -8,6 +8,19 @@
 #include <vector>
 #include <gsl/gsl_matrix.h>
 
+// Data format storing the information needed to reconstruct a tensor.
+// This should generally only be used as an opaque struct, except
+// within the ConcreteTensor class.
+struct Matrix
+{
+  size_t nin;
+  size_t nout;
+  size_t inrank;
+  size_t outrank;
+  bool conjugate;
+  gsl_matrix_complex *matrix;
+};
+
 // A single tensor in the tensor network.  Note that, when the tensor
 // represents a gate in a MERA the input should indicate the direction
 // of *greater* renormalization flow.
@@ -43,6 +56,10 @@ public:
   virtual Tensor* output_tensor(size_t n) = 0;
   virtual size_t input_num(size_t n) = 0;
   virtual size_t output_num(size_t n) = 0;
+  // return a struct representing the matrix or its conjugate.  Note
+  // that this is a shallow copy, but that a tensor object constructed
+  // from it will not delete the underlying data when destructed.
+  virtual Matrix matrix(bool conjugate = false) = 0;
 protected:
   // Like set_(input|output) above, but setting only a single
   // direction.  The above should call these functions on both objects.
@@ -54,6 +71,7 @@ protected:
   { T->_set_output_self(n,TT,m); }
 };
 
+// The actual implementation of a tensor.
 class ConcreteTensor : public Tensor
 {
 public:
@@ -61,13 +79,10 @@ public:
   ConcreteTensor(size_t nin, size_t nout, size_t inrank, size_t outrank);
   ConcreteTensor(size_t nin, size_t nout, size_t rank)
     : ConcreteTensor(nin, nout, rank, rank) {}
+  ConcreteTensor(Matrix m);
   ConcreteTensor& operator=(const Tensor&) = delete;
   ConcreteTensor(const Tensor&) = delete;
   ~ConcreteTensor();
-  // Return a shallow copy of either this tensor or its Hermitian
-  // conjugate, sharing the underlying matrix.
-  static Tensor *copy_of(Tensor *T);
-  static Tensor *conjugate_of(Tensor *T);
   // From interface Tensor.
   size_t input_rank() override;
   size_t output_rank() override;
@@ -87,6 +102,7 @@ public:
   Tensor* output_tensor(size_t n) override;
   size_t input_num(size_t n) override;
   size_t output_num(size_t n) override;
+  Matrix matrix(bool conjugate = false) override;
 protected:
   // Methods interacting directly with underlying data.
   std::complex<double> _entry(const std::vector<size_t>& in,
@@ -110,6 +126,7 @@ protected:
   void _set_input_self(size_t n, Tensor *T, size_t m) override final;
   void _set_output_self(size_t n, Tensor *T, size_t m) override final;
 private:
+  void _initialize(bool init_matrix);
   // Number of input and output sites.
   size_t _nin;
   size_t _nout;

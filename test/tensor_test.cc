@@ -28,7 +28,7 @@ protected:
 typedef TensorTest TensorDeathTest;
 
 // test setting and retrieving entries
-TEST_F(TensorTest,Entry) {
+TEST_F(TensorTest,EntryInitialState) {
   // test initialized values; the tensor should be nearly an identity
   // matrix
   EXPECT_DOUBLE_EQ(0, T1->entry( {0,2}, {0,0,3} ).real() );
@@ -40,7 +40,9 @@ TEST_F(TensorTest,Entry) {
 				 vector<size_t>({0,0,2}) ).real() );
   EXPECT_DOUBLE_EQ(0, T1->entry( vector<size_t>({0,2}),
 				 vector<size_t>({0,0,2}) ).imag() );
+}
 
+TEST_F(TensorTest,EntryManipulations) {
   // test setting and retrieving values, exercizing both methods
   T1->set_entry( vector<size_t>({3,5}), vector<size_t>({2,0,4}),
 		 complex<double>(2.4,3.6) );
@@ -72,6 +74,7 @@ TEST_F(TensorDeathTest,Entry) {
 			   vector<size_t>({2,0,4}), complex<double>() ), "");
 }
 
+// for debugging purposes
 TEST_F(TensorTest,IsolateCrash) {
   EXPECT_CALL(mock, _set_output_self(_,nullptr,_))
     .Times(AtLeast(0));

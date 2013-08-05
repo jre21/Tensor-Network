@@ -13,26 +13,14 @@ ConcreteTensor::ConcreteTensor(size_t nin, size_t nout,
 			       size_t inrank, size_t outrank)
   : _nin(nin), _nout(nout), _inrank(inrank), _outrank(outrank)
 {
-  // initialize variables
-  _in = vector<Tensor*>(nin, nullptr);
-  _out = vector<Tensor*>(nout, nullptr);
-  _indest = vector<size_t>(nin,0);
-  _outdest = vector<size_t>(nout,0);
-  _conjugate = false;
+  _initialize(true);
+}
 
-  // If either vector space rank is 0, the matrix is empty.  We leave
-  // it null in this case.
-  if(nin != 0 && nout != 0 && inrank != 0 && outrank != 0)
-    {
-      // calculate powers by hand to avoid cast to floating point
-      int in = 1, out = 1;
-      for (size_t i=0; i<nin; i++) in *= inrank;
-      for (size_t i=0; i<nout; i++) out *= outrank;
-      _matrix = gsl_matrix_complex_alloc(in, out);
-      gsl_matrix_complex_set_identity(_matrix);
-    }
-  else 
-    _matrix = nullptr;
+ConcreteTensor::ConcreteTensor(Matrix m)
+  : _nin(m.nin), _nout(m.nout), _inrank(m.inrank), _outrank(m.outrank),
+    _conjugate(m.conjugate), _matrix(m.matrix)
+{
+  _initialize(false);
 }
 
 // ########################### destructor ############################
@@ -47,18 +35,6 @@ ConcreteTensor::~ConcreteTensor()
       gsl_matrix_complex_free(_matrix);
       _matrix = nullptr;
     }
-}
-
-// ########################### copy_of ###############################
-Tensor *ConcreteTensor::copy_of(Tensor *T)
-{
-  return nullptr;
-}
-
-// ########################### conjugate_of ##########################
-Tensor *ConcreteTensor::conjugate_of(Tensor *T)
-{
-  return nullptr;
 }
 
 // ###################################################################
@@ -153,6 +129,12 @@ size_t ConcreteTensor::output_num(size_t n)
   return _outdest[n];
 }
 
+// ########################### matrix ################################
+Matrix ConcreteTensor::matrix(bool conjugate)
+{
+  return Matrix();
+}
+
 // ########################### _entry ################################
 complex<double> ConcreteTensor::_entry(const vector<size_t>& in,
 			       const vector<size_t>& out)
@@ -239,6 +221,12 @@ void ConcreteTensor::_set_input(size_t n, Tensor *T, size_t m)
 {
   _unset_input(n);
 
+  if(nullptr == T)
+    {
+      _set_input_self(n, nullptr, 0);
+      return;
+    }
+
   if(input_rank() != T->output_rank())
     LOG_MSG_(FATAL) << kErrIncompatible << "tensor arguments passed to "
       "ConcreteTensor::_set_input() have differing vector space ranks: " <<
@@ -251,6 +239,12 @@ void ConcreteTensor::_set_input(size_t n, Tensor *T, size_t m)
 void ConcreteTensor::_set_output(size_t n, Tensor *T, size_t m)
 {
   _unset_output(n);
+
+  if(nullptr == T)
+    {
+      _set_output_self(n, nullptr, 0);
+      return;
+    }
 
   if(output_rank() != T->input_rank())
     LOG_MSG_(FATAL) << kErrIncompatible << "tensor arguments passed to "
@@ -285,7 +279,7 @@ void ConcreteTensor::_unset_output(size_t n)
 
   if(_out[n] != nullptr)
     {
-      Tensor::_set_input(_in[n], _indest[n], nullptr, 0);
+      Tensor::_set_input(_out[n], _outdest[n], nullptr, 0);
       _set_output_self(n, nullptr, 0);
     }
 }
@@ -312,4 +306,31 @@ void ConcreteTensor::_set_output_self(size_t n, Tensor *T, size_t m)
 
   _out[n] = T;
   _outdest[n] = T != nullptr ? m : 0;
+}
+
+// ########################### _initialize ###########################
+void ConcreteTensor::_initialize(bool init_matrix)
+{
+  // initialize variables
+  _in = vector<Tensor*>(_nin, nullptr);
+  _out = vector<Tensor*>(_nout, nullptr);
+  _indest = vector<size_t>(_nin,0);
+  _outdest = vector<size_t>(_nout,0);
+  _conjugate = false;
+
+  if(!init_matrix) return;
+
+  // If either vector space rank is 0, the matrix is empty.  We leave
+  // it null in this case.
+  if(_nin != 0 && _nout != 0 && _inrank != 0 && _outrank != 0)
+    {
+      // calculate powers by hand to avoid cast to floating point
+      int in = 1, out = 1;
+      for (size_t i=0; i<_nin; i++) in *= _inrank;
+      for (size_t i=0; i<_nout; i++) out *= _outrank;
+      _matrix = gsl_matrix_complex_alloc(in, out);
+      gsl_matrix_complex_set_identity(_matrix);
+    }
+  else
+    _matrix = nullptr;
 }

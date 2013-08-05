@@ -11,7 +11,7 @@ const char* kErrListLength = "list has illegal length: ";
 LogMsg::LogMsg(LogSeverity severity, const char* file, int line)
     : severity_(severity) {
   const char* marker =
-    severity == LOG_DEBUG ?     "[ DEBUG ]" :
+    severity == LOG_DEBUG ?   "[ DEBUG ]" :
     severity == LOG_INFO ?    "[  INFO ]" :
     severity == LOG_WARNING ? "[WARNING]" :
     severity == LOG_ERROR ?   "[ ERROR ]" : "[ FATAL ]";
