@@ -1,3 +1,20 @@
+// Copyright 2013 Jacob Emmert-Aronson
+// This file is part of Tensor Network.
+//
+// Tensor Network is free software: you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation, either version 3 of the
+// License, or (at your option) any later version.
+//
+// Tensor Network is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Tensor Network.  If not, see
+// <http://www.gnu.org/licenses/>.
+
 // class representing a single tensor in the tensor network
 
 #ifndef TENSOR_HH_
@@ -71,7 +88,10 @@ protected:
   { T->_set_output_self(n,TT,m); }
 };
 
-// The actual implementation of a tensor.
+// The actual implementation of a tensor.  Most interface functions
+// simply call a protected function which provides the actual
+// implementation.  This is so that subclasses can easily override the
+// interface function without code duplication.
 class ConcreteTensor : public Tensor
 {
 public:

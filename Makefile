@@ -23,7 +23,7 @@ ifeq "$(target)" "release"
 CXXFLAGS += -O3
 endif # target == release
 ifeq "$(target)" "testing"
-CXXFLAGS += -O2 
+CXXFLAGS += -O2 -fvectorize
 endif # target == testing
 ifeq "$(target)" "debug"
 CXXFLAGS += -g -O0 -DDEBUG=1

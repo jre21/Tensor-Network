@@ -1,1 +1,14 @@
-Dependencies: clang, llvm-dev, libc++-dev, libc++abi-dev, libgoogle-perftools-dev, libatlas-base-dev, libgsl0dev, google-mock
+Tensor Network is a program I'm developing to implement tensor
+networks as defined in the physics literature, particularly the
+Multiscale Entanglement Renormalization Ansatz (MERA).  A useful
+review article from 2011 can be found at [1].
+
+[1] http://arxiv.org/abs/1106.1082.
+
+This program compiles by default with clang, libc++, and libtcmalloc,
+and ATLAS.  GNU Scientific Library is *required*, and the unit tests
+utilize the Google Test framework and Google Mock.
+
+On a Debian system, all dependencies can be satisfied by installing
+the following packages: clang, llvm-dev, libc++-dev, libc++abi-dev,
+libgoogle-perftools-dev, libatlas-base-dev, libgsl0dev, google-mock
