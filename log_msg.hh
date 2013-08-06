@@ -29,6 +29,7 @@ extern const char* kErrListLength;
 #define LOG_MSG_(severity) \
   LogMsg(LOG_##severity, __FILE__, __LINE__).GetStream()
 
+// prints a debugging message if DEBUG is defined
 #ifdef DEBUG
 #define LOG_DEBUG_MSG(message) \
   LOG_MSG_(DEBUG) << message

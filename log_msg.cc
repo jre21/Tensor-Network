@@ -34,11 +34,9 @@ LogMsg::LogMsg(LogSeverity severity, const char* file, int line)
     severity == LOG_ERROR ?   "[ ERROR ]" : "[ FATAL ]";
   if(file == nullptr) file = kUnknownFile;
   if(line < 0)
-    GetStream() << endl << marker << " "
-		<< file << ": ";
+    GetStream() << endl << marker << " " << file << ": ";
   else
-    GetStream() << endl << marker << " "
-		<< file << ":" << line << ": ";
+    GetStream() << endl << marker << " " << file << ":" << line << ": ";
 }
 
 // Flushes the buffers and, if severity is LOG_FATAL, aborts the program.

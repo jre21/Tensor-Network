@@ -28,14 +28,14 @@ using std::vector;
 // ########################### constructor ###########################
 ConcreteTensor::ConcreteTensor(size_t nin, size_t nout,
 			       size_t inrank, size_t outrank)
-  : _nin(nin), _nout(nout), _inrank(inrank), _outrank(outrank)
+  : _nin{nin}, _nout{nout}, _inrank{inrank}, _outrank{outrank}
 {
   _initialize(true);
 }
 
 ConcreteTensor::ConcreteTensor(Matrix m)
-  : _nin(m.nin), _nout(m.nout), _inrank(m.inrank), _outrank(m.outrank),
-    _conjugate(m.conjugate), _matrix(m.matrix)
+  : _nin{m.nin}, _nout{m.nout}, _inrank{m.inrank}, _outrank{m.outrank},
+    _conjugate{m.conjugate}, _matrix{m.matrix}
 {
   _initialize(false);
 }
@@ -45,9 +45,9 @@ ConcreteTensor::~ConcreteTensor()
 {
   if(nullptr != _matrix)
     {
-      for(size_t i = 0; i < _nin; i++)
+      for(size_t i = 0; i < _nin; ++i)
 	_unset_input(i);
-      for(size_t i = 0; i < _nout; i++)
+      for(size_t i = 0; i < _nout; ++i)
 	_unset_output(i);
       gsl_matrix_complex_free(_matrix);
       _matrix = nullptr;
@@ -77,7 +77,7 @@ complex<double> ConcreteTensor::entry(const vector<size_t>& in,
 complex<double> ConcreteTensor::entry(initializer_list<size_t>& in,
 				      initializer_list<size_t>& out)
 {
-  return _entry( vector<size_t>(in), vector<size_t>(out) );
+  return _entry( vector<size_t>{in}, vector<size_t>{out} );
 }
 
 // ########################### set_entry #############################
@@ -91,7 +91,7 @@ void ConcreteTensor::set_entry(initializer_list<size_t>& in,
 			       initializer_list<size_t>& out,
 			       complex<double> val)
 {
-  _set_entry(vector<size_t>(in), vector<size_t>(out), val);
+  _set_entry(vector<size_t>{in}, vector<size_t>{out}, val);
 }
 
 // ########################### set_input #############################
@@ -109,40 +109,56 @@ void ConcreteTensor::set_output(size_t n, Tensor *T, size_t m)
 // ########################### input_tensor ##########################
 Tensor* ConcreteTensor::input_tensor(size_t n)
 {
+  // guard against out-of-bounds arguments
+#ifndef NO_ERROR_CHECKING
   if(n >= _nin)
     LOG_MSG_(FATAL) << kErrBounds << "argument of "
       "ConcreteTensor::input_tensor(): " << n <<
       " exceeds input list length " << _nin;
+#endif // NO_ERROR_CHECKING
+
   return _in[n];
 }
 
 // ########################### output_tensor #########################
 Tensor* ConcreteTensor::output_tensor(size_t n)
 {
+#ifndef NO_ERROR_CHECKING
+  // guard against out-of-bounds arguments
   if(n >= _nout)
     LOG_MSG_(FATAL) << kErrBounds << "argument of "
       "ConcreteTensor::output_tensor(): " << n <<
       " exceeds output list length " << _nout;
+#endif
+
   return _out[n];
 }
 
 // ########################### input_num #############################
 size_t ConcreteTensor::input_num(size_t n)
 {
+#ifndef NO_ERROR_CHECKING
+  // guard against out-of-bounds arguments
   if(n >= _nin)
     LOG_MSG_(FATAL) << kErrBounds << "argument of "
       "ConcreteTensor::input_num(): " << n <<
       " exceeds input list length " << _nin;
+#endif // NO_ERROR_CHECKING
+
   return _indest[n];
 }
 
 // ########################### output_num ############################
 size_t ConcreteTensor::output_num(size_t n)
 {
+#ifndef NO_ERROR_CHECKING
+  // guard against out-of-bounds arguments
   if(n >= _nout)
     LOG_MSG_(FATAL) << kErrBounds << "argument of "
       "ConcreteTensor::output_num(): " << n <<
       " exceeds output list length " << _nout;
+#endif // NO_ERROR_CHECKING
+
   return _outdest[n];
 }
 
@@ -172,50 +188,75 @@ void ConcreteTensor::_set_entry(const vector<size_t>& in,
 // ########################### _pack_input ###########################
 size_t ConcreteTensor::_pack_input(const vector<size_t>& in)
 {
+#ifndef NO_ERROR_CHECKING
+  // guard against wrongly-sized argument lists
   if(in.size() != _nin)
     LOG_MSG_(FATAL) << kErrListLength << "argument of "
       "ConcreteTensor::_pack_input(): expected length " << _nin <<
       " but detected " << in.size();
+#endif // NO_ERROR_CHECKING
+
+  // convert from argument list to single argument for matrix
   size_t ret = 0;
-  for(size_t i = 0, mult = 1; i < _nin; i++, mult *= _inrank)
+  for(size_t i = 0, mult = 1; i < _nin; ++i, mult *= _inrank)
     {
+#ifndef NO_ERROR_CHECKING
+      // guard against out-of-bounds arguments
       if(in[_nin-i-1] >= _inrank)
 	LOG_MSG_(FATAL) << kErrBounds << "argument of "
 	  "ConcreteTensor::_pack_input(): element " << _nin-i-1 <<
 	  " has value " << in[_nin-i-1] <<
 	  " which exceeds vector space rank of " << _inrank;
+#endif // NO_ERROR_CHECKING
+
       ret += mult * in[_nin-i-1];
     }
+
   return ret;
 }
 
 // ########################### _unpack_input #########################
 vector<size_t> ConcreteTensor::_unpack_input(size_t in)
 {
-  vector<size_t> ret(_nin);
-  for(size_t i = 0; i < _nin; i++, in /= _inrank)
+  // convert from matrix index to index list for tensor
+  vector<size_t> ret{_nin};
+  for(size_t i = 0; i < _nin; ++i, in /= _inrank)
     ret[_nin-i-1] = in % _inrank;
+
+#ifndef NO_ERROR_CHECKING
+  // guard against out-of-bounds arguments
   if(in > 0)
     LOG_MSG_(FATAL) << kErrBounds << "argument of "
       "ConcreteTensor::_unpack_input() exceeds vector space rank";
+#endif // NO_ERROR_CHECKING
+
   return ret;
 }
 
 // ########################### _pack_output ##########################
 size_t ConcreteTensor::_pack_output(const vector<size_t>& out)
 {
+#ifndef NO_ERROR_CHECKING
+  // guard against wrongly-sized argument lists
   if(out.size() != _nout)
     LOG_MSG_(FATAL) << kErrListLength << "argument of "
       "ConcreteTensor::_pack_output(): expected length " << _nout <<
       " but detected " << out.size();
+#endif // NO_ERROR_CHECKING
+
+  // convert from argument list to single argument for matrix
   size_t ret = 0;
-  for(size_t i = 0, mult = 1; i < _nout; i++, mult *= _outrank)
+  for(size_t i = 0, mult = 1; i < _nout; ++i, mult *= _outrank)
     {
+#ifndef NO_ERROR_CHECKING
+      // guard against out-of-bounds arguments
       if(out[_nout-i-1] >= _outrank)
 	LOG_MSG_(FATAL) << kErrBounds << "argument of "
 	  "ConcreteTensor::_pack_output(): element " << _nout-i-1 <<
 	  " has value " << out[_nout-i-1] <<
 	  " which exceeds vector space rank of " << _outrank;
+#endif // NO_ERROR_CHECKING
+
       ret += mult * out[_nout-i-1];
     }
   return ret;
@@ -224,30 +265,39 @@ size_t ConcreteTensor::_pack_output(const vector<size_t>& out)
 // ########################### _unpack_output ########################
 vector<size_t> ConcreteTensor::_unpack_output(size_t out)
 {
-  vector<size_t> ret(_nout);
-  for(size_t i = 0; i < _nout; i++, out /= _outrank)
+  // convert from matrix index to index list for tensor
+  vector<size_t> ret{_nout};
+  for(size_t i = 0; i < _nout; ++i, out /= _outrank)
     ret[_nout-i-1] = out % _outrank;
+
+#ifndef NO_ERROR_CHECKING
+  // guard against out-of-bounds arguments
   if(out > 0)
     LOG_MSG_(FATAL) << kErrBounds << "argument of "
       "ConcreteTensor::_unpack_output() exceeds vector space rank";
+#endif // NO_ERROR_CHECKING
+
   return ret;
 }
 
 // ########################### _set_input ############################
 void ConcreteTensor::_set_input(size_t n, Tensor *T, size_t m)
 {
+  // ensure current input is cleared properly
   _unset_input(n);
 
-  if(nullptr == T)
-    {
-      _set_input_self(n, nullptr, 0);
-      return;
-    }
+  // if nullptr was passed, we're just unsetting the input
+  if(nullptr == T) return;
 
-  if(input_rank() != T->output_rank())
+#ifndef NO_ERROR_CHECKING
+  // ensure tensors are formed from compatible vector spaces
+  if(nullptr != T && input_rank() != T->output_rank())
     LOG_MSG_(FATAL) << kErrIncompatible << "tensor arguments passed to "
       "ConcreteTensor::_set_input() have differing vector space ranks: " <<
       input_rank() << " and " << T->output_rank();
+#endif // NO_ERROR_CHECKING
+
+  // link the two tensors
   _set_input_self(n, T, m);
   Tensor::_set_output(T, m, this, n);
 }
@@ -255,18 +305,21 @@ void ConcreteTensor::_set_input(size_t n, Tensor *T, size_t m)
 // ########################### _set_output ###########################
 void ConcreteTensor::_set_output(size_t n, Tensor *T, size_t m)
 {
+  // ensure that output is cleared properly
   _unset_output(n);
 
-  if(nullptr == T)
-    {
-      _set_output_self(n, nullptr, 0);
-      return;
-    }
+  // if a nullptr was passed, we're just unsetting the output
+  if(nullptr == T) return;
 
+#ifndef NO_ERROR_CHECKING  
+  // ensure tensors are formed from compatible vector spaces
   if(output_rank() != T->input_rank())
     LOG_MSG_(FATAL) << kErrIncompatible << "tensor arguments passed to "
       "ConcreteTensor::_set_output() have differing vector space ranks: " <<
       output_rank() << " and " << T->input_rank();
+#endif // NO_ERROR_CHECKING
+
+  // link the two tensors
   _set_output_self(n, T, m);
   Tensor::_set_input(T, m, this, n);
 }
@@ -274,41 +327,49 @@ void ConcreteTensor::_set_output(size_t n, Tensor *T, size_t m)
 // ########################### _unset_input ##########################
 void ConcreteTensor::_unset_input(size_t n)
 {
+#ifndef NO_ERROR_CHECKING
+  // guard against out-of-bounds arguments
   if(n >= _nin)
     LOG_MSG_(FATAL) << kErrBounds << "first argument of "
       "ConcreteTensor::_unset_input(): " << n <<
       " exceeds input list length " << _nin;
+#endif // NO_ERROR_CHECKING
 
+  // unlink tensors
   if(_in[n] != nullptr)
-    {
-      Tensor::_set_output(_in[n], _indest[n], nullptr, 0);
-      _set_input_self(n, nullptr, 0);
-    }
+    Tensor::_set_output(_in[n], _indest[n], nullptr, 0);
+  _set_input_self(n, nullptr, 0);
 }
 
 // ########################### _unset_output #########################
 void ConcreteTensor::_unset_output(size_t n)
 {
+#ifndef NO_ERROR_CHECKING
+  // guard against out-of-bounds arguments
   if(n >= _nout)
     LOG_MSG_(FATAL) << kErrBounds << "first argument of "
       "ConcreteTensor::_unset_output(): " << n <<
       " exceeds input list length " << _nout;
+#endif // NO_ERROR_CHECKING
 
+  // unlink tensors
   if(_out[n] != nullptr)
-    {
-      Tensor::_set_input(_out[n], _outdest[n], nullptr, 0);
-      _set_output_self(n, nullptr, 0);
-    }
+    Tensor::_set_input(_out[n], _outdest[n], nullptr, 0);
+  _set_output_self(n, nullptr, 0);
 }
 
 // ########################### _set_input_self #######################
 void ConcreteTensor::_set_input_self(size_t n, Tensor *T, size_t m)
 {
+#ifndef NO_ERROR_CHECKING
+  // guard against out-of-bounds arguments
   if(n >= _nin)
     LOG_MSG_(FATAL) << kErrBounds << "first argument of "
       "ConcreteTensor::_set_input_self(): " << n <<
       " exceeds input list length " << _nin;
+#endif // NO_ERROR_CHECKING
 
+  // set input tensor and destination
   _in[n] = T;
   _indest[n] = T != nullptr ? m : 0;
 }
@@ -316,11 +377,15 @@ void ConcreteTensor::_set_input_self(size_t n, Tensor *T, size_t m)
 // ########################### _set_output_self ######################
 void ConcreteTensor::_set_output_self(size_t n, Tensor *T, size_t m)
 {
+#ifndef NO_ERROR_CHECKING
+  // guard against out-of-bounds arguments
   if(n >= _nout)
     LOG_MSG_(FATAL) << kErrBounds << "first argument of "
       "ConcreteTensor::_set_output_self(): " << n <<
       " exceeds output list length " << _nout;
+#endif // NO_ERROR_CHECKING
 
+  // set output tensor and destination
   _out[n] = T;
   _outdest[n] = T != nullptr ? m : 0;
 }

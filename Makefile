@@ -20,6 +20,7 @@ LDFLAGS = -stdlib=libc++ -fuse-ld=gold
 LDLIBS = -ltcmalloc -lgsl -lcblas -latlas -lm -lpthread
 
 ifeq "$(target)" "release"
+# add -DNO_ERROR_CHECKING to remove internal error checks
 CXXFLAGS += -O3
 endif # target == release
 ifeq "$(target)" "testing"

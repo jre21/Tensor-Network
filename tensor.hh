@@ -26,8 +26,6 @@
 #include <gsl/gsl_matrix.h>
 
 // Data format storing the information needed to reconstruct a tensor.
-// This should generally only be used as an opaque struct, except
-// within the ConcreteTensor class.
 struct Matrix
 {
   size_t nin;
