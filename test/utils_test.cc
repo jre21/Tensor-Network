@@ -15,18 +15,17 @@
 // along with Tensor Network.  If not, see
 // <http://www.gnu.org/licenses/>.
 
-// small utilities
+#include "utils_test.hh"
 
-#ifndef UTILS_HH_
-#define UTILS_HH_
-#include <gsl/gsl_complex.h>
-#include <complex>
+using std::complex;
 
-// convert between C++ and GSL representations of complex numbers
-std::complex<double> complex_from_gsl(const gsl_complex& c);
-gsl_complex complex_to_gsl(const std::complex<double>& c);
-
-// generate a number's complex conjugate
-std::complex<double> conjugate(const std::complex<double>& c);
-
-#endif // UTILS_HH_
+// ########################### expect_complex_eq #####################
+void expect_complex_eq(const complex<double>& expected,
+		       const complex<double>& actual,
+		       const char *file, int line)
+{
+  EXPECT_DOUBLE_EQ( expected.real(), actual.real() )
+    << "at " << file << ":" << line;
+  EXPECT_DOUBLE_EQ( expected.imag(), actual.imag() )
+    << "at " << file << ":" << line;
+}

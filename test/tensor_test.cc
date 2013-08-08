@@ -19,6 +19,8 @@
 #include <gtest/gtest.h>
 #include "mock_tensor.hh"
 #include "../tensor.hh"
+#include "../utils.hh"
+#include "utils_test.hh"
 
 using std::vector;
 using std::complex;
@@ -48,48 +50,40 @@ typedef TensorTest TensorDeathTest;
 TEST_F(TensorTest,EntryInitialState) {
   // test initialized values; the tensor should be nearly an identity
   // matrix
-  EXPECT_DOUBLE_EQ(0, T->entry( {0,2}, {0,0,3} ).real() );
-  EXPECT_DOUBLE_EQ(0, T->entry( vector<size_t>({1,2}),
-				 vector<size_t>({1,0,3}) ).imag() );
-  EXPECT_DOUBLE_EQ(1, T->entry( {0,2}, {0,0,2} ).real() );
-  EXPECT_DOUBLE_EQ(0, T->entry( {0,2}, {0,0,2} ).imag() );
-  EXPECT_DOUBLE_EQ(1, T->entry( vector<size_t>({0,2}),
-				 vector<size_t>({0,0,2}) ).real() );
-  EXPECT_DOUBLE_EQ(0, T->entry( vector<size_t>({0,2}),
-				 vector<size_t>({0,0,2}) ).imag() );
-  EXPECT_DOUBLE_EQ(0, T->entry( {5,5}, {5,5,5} ).real() );
+  TN_EXPECT_COMPLEX_EQ(0, T->entry( {0,2}, {0,0,3} ) );
+  TN_EXPECT_COMPLEX_EQ(1, T->entry( {0,2}, {0,0,2} ) );
+  TN_EXPECT_COMPLEX_EQ(1, T->entry( vector<size_t>{0,2},
+				 vector<size_t>{0,0,2} ) );
+  TN_EXPECT_COMPLEX_EQ(0, T->entry( {5,5}, {5,5,5} ) );
 }
 
 TEST_F(TensorTest,EntryManipulations) {
-  // test setting and retrieving values, exercizing both methods
-  T->set_entry( vector<size_t>({3,5}), vector<size_t>({2,0,4}),
-		 complex<double>(2.4,3.6) );
-  EXPECT_DOUBLE_EQ(2.4,T->entry( vector<size_t>({3,5}),
-				  vector<size_t>({2,0,4})
-				  ).real() );
-  EXPECT_DOUBLE_EQ(3.6, T->entry( {3,5}, {2,0,4} ).imag() );
+  complex<double> c1{2.4, 2.6}, c2{3.14, 2.718};
+  // test setting and retrieving values, exercizing both method signatures
+  T->set_entry( vector<size_t>{3,5}, vector<size_t>{2,0,4}, c1 );
+  TN_EXPECT_COMPLEX_EQ(c1, T->entry( vector<size_t>{3,5},
+				     vector<size_t>{2,0,4} ));
 
-  T->set_entry( {4,1}, {3,5,2}, complex<double>(3.14,2.718) );
-  EXPECT_DOUBLE_EQ(3.14, T->entry( {4,1}, {3,5,2} ).real() );
-  EXPECT_DOUBLE_EQ(2.718, T->entry( {4,1}, {3,5,2} ).imag() );
+  T->set_entry( {4,1}, {3,5,2}, c2 );
+  TN_EXPECT_COMPLEX_EQ(c2, T->entry( {4,1}, {3,5,2} ) );
 }
 
 TEST_F(TensorDeathTest,Entry) {
   // crash when fetching entry with wrong number of arguments
   EXPECT_DEATH( T->entry( {3,5}, {2,0} ), "");
-  EXPECT_DEATH( T->entry( vector<size_t>({3}), vector<size_t>({2,0,4}) ), "");
+  EXPECT_DEATH( T->entry( vector<size_t>{3}, vector<size_t>{2,0,4} ), "");
   // crash when fetching entry with argument out of range
   EXPECT_DEATH( T->entry( {3,5}, {2,0,6} ), "");
-  EXPECT_DEATH( T->entry( vector<size_t>({3,6}),
-			   vector<size_t>({2,0,4}) ), "");
+  EXPECT_DEATH( T->entry( vector<size_t>{3,6},
+			   vector<size_t>{2,0,4} ), "");
 
   // same tests, but when setting entry
-  EXPECT_DEATH( T->set_entry( {3,5}, {2,0}, complex<double>() ), "");
-  EXPECT_DEATH( T->set_entry( vector<size_t>({3}), vector<size_t>({2,0,4}),
-			       complex<double>() ), "");
-  EXPECT_DEATH( T->set_entry( {3,5}, {2,0,6}, complex<double>() ), "");
-  EXPECT_DEATH( T->set_entry( vector<size_t>({3,6}),
-			   vector<size_t>({2,0,4}), complex<double>() ), "");
+  EXPECT_DEATH( T->set_entry( {3,5}, {2,0}, complex<double>{} ), "");
+  EXPECT_DEATH( T->set_entry( vector<size_t>{3}, vector<size_t>{2,0,4},
+			      complex<double>{} ), "");
+  EXPECT_DEATH( T->set_entry( {3,5}, {2,0,6}, complex<double>{} ), "");
+  EXPECT_DEATH( T->set_entry( vector<size_t>{3,6},
+			      vector<size_t>{2,0,4}, complex<double>{} ), "");
 }
 
 
@@ -158,6 +152,7 @@ TEST_F(TensorDeathTest,Linking) {
     .Times(AtLeast(0)).WillOnce(Return(5));
   EXPECT_DEATH(T->set_input(0,&mock,0), "");
 
+  // same, but linking on output rather than input
   EXPECT_CALL(mock, input_rank())
     .Times(AtLeast(0)).WillOnce(Return(5));
   EXPECT_CALL(mock, output_rank())
@@ -167,6 +162,42 @@ TEST_F(TensorDeathTest,Linking) {
 
 // test making copies of a tensor
 TEST_F(TensorTest,Copying) {
-  // Set a few entries in T
-  FAIL();
+  // some complex numbers to use
+  complex<double> c1{2.7,5.3}, c2{8.2,1.6}, c3{1.8,7.3},
+		  c4{5.2,9.0}, c5{3.7,4.2};
+
+  // set a few entries in T
+  T->set_entry( {2,4}, {1,5,3}, c1 );
+  T->set_entry( {0,3}, {5,2,4}, c2 );
+
+  // create a copy of T
+  Tensor *T0 = new ConcreteTensor{T->matrix()};
+  // ensure entries exist in both copies
+  TN_EXPECT_COMPLEX_EQ(c1, T->entry( {2,4}, {1,5,3} ));
+  TN_EXPECT_COMPLEX_EQ(c1, T0->entry( {2,4}, {1,5,3} ));
+
+  // set entries in one tensor and ensure the other updates
+  T->set_entry( {0,3}, {5,2,4}, c2 );
+  T0->set_entry( {4,3}, {2,2,5}, c3 );
+  TN_EXPECT_COMPLEX_EQ(c2, T->entry( {0,3}, {5,2,4} ));
+  TN_EXPECT_COMPLEX_EQ(c2, T0->entry( {0,3}, {5,2,4} ));
+  TN_EXPECT_COMPLEX_EQ(c3, T->entry( {4,3}, {2,2,5} ));
+  TN_EXPECT_COMPLEX_EQ(c3, T0->entry( {4,3}, {2,2,5} ));
+
+  // create a Hermitian conjugate copy of T
+  Tensor *T1 = new ConcreteTensor{T->matrix(true)};
+  // ensure entries exist in both copies
+  TN_EXPECT_COMPLEX_EQ(c1, T->entry( {2,4}, {1,5,3} ));
+  TN_EXPECT_COMPLEX_EQ(conjugate(c1), T1->entry( {2,4}, {1,5,3} ));
+
+  // set entries in one tensor and ensure the other updates
+  T->set_entry( {2,0}, {1,0,3}, c4 );
+  T1->set_entry( {2,1,5}, {3,1}, c5 );
+  TN_EXPECT_COMPLEX_EQ(c4, T->entry( {2,0}, {1,0,3} ));
+  TN_EXPECT_COMPLEX_EQ(conjugate(c4), T1->entry( {1,0,3}, {2,0} ));
+  TN_EXPECT_COMPLEX_EQ(conjugate(c5), T->entry( {3,1}, {1,1,3} ));
+  TN_EXPECT_COMPLEX_EQ(c5, T1->entry( {1,1,5}, {3,1} ));
+
+  delete T0;
+  delete T1;
 }

@@ -15,18 +15,19 @@
 // along with Tensor Network.  If not, see
 // <http://www.gnu.org/licenses/>.
 
-// small utilities
+// small utilities useful for unit tests
 
-#ifndef UTILS_HH_
-#define UTILS_HH_
-#include <gsl/gsl_complex.h>
-#include <complex>
+#ifndef UTILS_TEST_HH_
+#define UTILS_TEST_HH_
 
-// convert between C++ and GSL representations of complex numbers
-std::complex<double> complex_from_gsl(const gsl_complex& c);
-gsl_complex complex_to_gsl(const std::complex<double>& c);
+#include <complex.h>
+#include <gtest/gtest.h>
 
-// generate a number's complex conjugate
-std::complex<double> conjugate(const std::complex<double>& c);
+void expect_complex_eq(const std::complex<double>& expected,
+		       const std::complex<double>& actual,
+		       const char *file, int line);
 
-#endif // UTILS_HH_
+#define TN_EXPECT_COMPLEX_EQ(expected, actual) \
+  expect_complex_eq(expected, actual, __FILE__, __LINE__)
+
+#endif // UTILS_TEST_HH_
