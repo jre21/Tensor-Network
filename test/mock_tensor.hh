@@ -32,15 +32,15 @@ public:
 	       (const std::vector<size_t>& in,
 		const std::vector<size_t>& out));
   MOCK_METHOD2(entry, std::complex<double>
-	       (std::initializer_list<size_t>& in,
-		std::initializer_list<size_t>& out));
+	       (std::initializer_list<size_t> in,
+		std::initializer_list<size_t> out));
   MOCK_METHOD3(set_entry, void
 	       (const std::vector<size_t>& in,
 		const std::vector<size_t>& out,
 		std::complex<double> val));
   MOCK_METHOD3(set_entry, void
-	       (std::initializer_list<size_t>& in,
-		std::initializer_list<size_t>& out,
+	       (std::initializer_list<size_t> in,
+		std::initializer_list<size_t> out,
 		std::complex<double> val));
   MOCK_METHOD3(set_input, void(size_t n, Tensor *T, size_t m));
   MOCK_METHOD3(set_output, void(size_t n, Tensor *T, size_t m));

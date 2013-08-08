@@ -188,16 +188,23 @@ TEST_F(TensorTest,Copying) {
   Tensor *T1 = new ConcreteTensor{T->matrix(true)};
   // ensure entries exist in both copies
   TN_EXPECT_COMPLEX_EQ(c1, T->entry( {2,4}, {1,5,3} ));
-  TN_EXPECT_COMPLEX_EQ(conjugate(c1), T1->entry( {2,4}, {1,5,3} ));
+  TN_EXPECT_COMPLEX_EQ(conjugate(c1), T1->entry( {1,5,3}, {2,4} ));
 
   // set entries in one tensor and ensure the other updates
   T->set_entry( {2,0}, {1,0,3}, c4 );
   T1->set_entry( {2,1,5}, {3,1}, c5 );
   TN_EXPECT_COMPLEX_EQ(c4, T->entry( {2,0}, {1,0,3} ));
   TN_EXPECT_COMPLEX_EQ(conjugate(c4), T1->entry( {1,0,3}, {2,0} ));
-  TN_EXPECT_COMPLEX_EQ(conjugate(c5), T->entry( {3,1}, {1,1,3} ));
-  TN_EXPECT_COMPLEX_EQ(c5, T1->entry( {1,1,5}, {3,1} ));
+  TN_EXPECT_COMPLEX_EQ(conjugate(c5), T->entry( {3,1}, {2,1,5} ));
+  TN_EXPECT_COMPLEX_EQ(c5, T1->entry( {2,1,5}, {3,1} ));
+
+  // create a double-conjugate copy and ensure it is equivalent to the
+  // original
+  Tensor *T2 = new ConcreteTensor{T1->matrix(true)};
+  TN_EXPECT_COMPLEX_EQ(T->entry( {2,1,5}, {3,1} ),
+		       T2->entry( {2,1,5}, {3,1} ));
 
   delete T0;
   delete T1;
+  delete T2;
 }

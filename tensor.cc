@@ -28,14 +28,15 @@ using std::vector;
 // ########################### constructor ###########################
 ConcreteTensor::ConcreteTensor(size_t nin, size_t nout,
 			       size_t inrank, size_t outrank)
-  : _nin{nin}, _nout{nout}, _inrank{inrank}, _outrank{outrank}
+  : _nin{nin}, _nout{nout}, _inrank{inrank}, _outrank{outrank},
+    _conjugate{false}
 {
   _initialize(true);
 }
 
 ConcreteTensor::ConcreteTensor(Matrix m)
-  : _nin{m.nin}, _nout{m.nout}, _inrank{m.inrank}, _outrank{m.outrank},
-    _conjugate{m.conjugate}, _matrix{m.matrix}
+  : _nin{m.nin}, _nout{m.nout}, _inrank{m.inrank},
+    _outrank{m.outrank}, _conjugate{m.conjugate}, _matrix{m.matrix}
 {
   _initialize(false);
 }
@@ -74,8 +75,8 @@ complex<double> ConcreteTensor::entry(const vector<size_t>& in,
   return _entry(in, out);
 }
 
-complex<double> ConcreteTensor::entry(initializer_list<size_t>& in,
-				      initializer_list<size_t>& out)
+complex<double> ConcreteTensor::entry(initializer_list<size_t> in,
+				      initializer_list<size_t> out)
 {
   return _entry( vector<size_t>{in}, vector<size_t>{out} );
 }
@@ -87,8 +88,8 @@ void ConcreteTensor::set_entry(const vector<size_t>& in,
   _set_entry(in,out,val);
 }
 
-void ConcreteTensor::set_entry(initializer_list<size_t>& in,
-			       initializer_list<size_t>& out,
+void ConcreteTensor::set_entry(initializer_list<size_t> in,
+			       initializer_list<size_t> out,
 			       complex<double> val)
 {
   _set_entry(vector<size_t>{in}, vector<size_t>{out}, val);
@@ -165,24 +166,62 @@ size_t ConcreteTensor::output_num(size_t n)
 // ########################### matrix ################################
 Matrix ConcreteTensor::matrix(bool conjugate)
 {
-  return Matrix();
+  Matrix m;
+  if(!conjugate)
+    {
+      m.nin = _nin;
+      m.nout = _nout;
+      m.inrank = _inrank;
+      m.outrank = _outrank;
+      m.conjugate = _conjugate;
+    }
+  else
+    {
+      m.nin = _nout;
+      m.nout = _nin;
+      m.inrank = _outrank;
+      m.outrank = _inrank;
+      m.conjugate = !_conjugate;
+    }
+  // Create a copy of the initial matrix which won't delete the
+  // underlying data when destroyed.
+  m.matrix = gsl_matrix_complex_alloc_from_matrix 
+    ( _matrix, 0, 0, _matrix->size1, _matrix->size2 );
+
+  return m;
 }
 
 // ########################### _entry ################################
 complex<double> ConcreteTensor::_entry(const vector<size_t>& in,
 			       const vector<size_t>& out)
 {
-  return complex_from_gsl(gsl_matrix_complex_get( _matrix,
-						  _pack_input(in),
-						  _pack_output(out)));
+  if(!_conjugate)
+    return complex_from_gsl(gsl_matrix_complex_get
+			    ( _matrix, _pack_input(in),
+			      _pack_output(out) ) );
+  else
+    // Exchange rows and columns and take the complex conjugate to
+    // simulate retrieving data from the Hermitian conjugate of the
+    // underlying matrix.
+    return conjugate(complex_from_gsl(gsl_matrix_complex_get
+				      ( _matrix, _pack_output(out),
+					_pack_input(in) ) ));
 }
 
 // ########################### _set_entry ############################
 void ConcreteTensor::_set_entry(const vector<size_t>& in,
 				const vector<size_t>& out, complex<double> val)
 {
-  gsl_matrix_complex_set( _matrix, _pack_input(in),
-			  _pack_output(out), complex_to_gsl(val) );
+  if(!_conjugate)
+    gsl_matrix_complex_set( _matrix, _pack_input(in),
+			    _pack_output(out), complex_to_gsl(val) );
+  else
+    // exchange rows and columns and take the complex conjugate to
+    // simulate retrieving data from the Hermitian conjugate of the
+    // underlying matrix
+    gsl_matrix_complex_set( _matrix, _pack_output(out),
+			    _pack_input(in),
+			    complex_to_gsl(conjugate(val)) );
 }
 
 // ########################### _pack_input ###########################
@@ -398,13 +437,12 @@ void ConcreteTensor::_initialize(bool init_matrix)
   _out = vector<Tensor*>(_nout, nullptr);
   _indest = vector<size_t>(_nin,0);
   _outdest = vector<size_t>(_nout,0);
-  _conjugate = false;
 
   if(!init_matrix) return;
 
   // If either vector space rank is 0, the matrix is empty.  We leave
   // it null in this case.
-  if(_nin != 0 && _nout != 0 && _inrank != 0 && _outrank != 0)
+  if(_inrank != 0 && _outrank != 0)
     {
       // calculate powers by hand to avoid cast to floating point
       int in = 1, out = 1;

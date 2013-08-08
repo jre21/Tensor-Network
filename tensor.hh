@@ -26,6 +26,9 @@
 #include <gsl/gsl_matrix.h>
 
 // Data format storing the information needed to reconstruct a tensor.
+// Note that setting conjugate indicates only that the complex
+// conjugate of matrix should be used.  Other variables should still
+// be used as-is.
 struct Matrix
 {
   size_t nin;
@@ -51,13 +54,13 @@ public:
   // proper length.
   virtual std::complex<double> entry(const std::vector<size_t>& in,
 				     const std::vector<size_t>& out) = 0;
-  virtual std::complex<double> entry(std::initializer_list<size_t>& in,
-				     std::initializer_list<size_t>& out) = 0;
+  virtual std::complex<double> entry(std::initializer_list<size_t> in,
+				     std::initializer_list<size_t> out) = 0;
   virtual void set_entry(const std::vector<size_t>& in,
 			 const std::vector<size_t>& out,
 			 std::complex<double> val) = 0;
-  virtual void set_entry(std::initializer_list<size_t>& in,
-			 std::initializer_list<size_t>& out,
+  virtual void set_entry(std::initializer_list<size_t> in,
+			 std::initializer_list<size_t> out,
 			 std::complex<double> val) = 0;
   // Set input (output) n to correspond to output (input) m on tensor g.
   // This function must ensure the tensors are compatible (built from
@@ -106,13 +109,13 @@ public:
   size_t output_rank() override;
   std::complex<double> entry(const std::vector<size_t>& in,
 			     const std::vector<size_t>& out) override;
-  std::complex<double> entry(std::initializer_list<size_t>& in,
-			     std::initializer_list<size_t>& out) override;
+  std::complex<double> entry(std::initializer_list<size_t> in,
+			     std::initializer_list<size_t> out) override;
   void set_entry(const std::vector<size_t>& in,
 		 const std::vector<size_t>& out,
 		 std::complex<double> val) override;
-  void set_entry(std::initializer_list<size_t>& in,
-		 std::initializer_list<size_t>& out,
+  void set_entry(std::initializer_list<size_t> in,
+		 std::initializer_list<size_t> out,
 		 std::complex<double> val) override;
   void set_input(size_t n, Tensor *T, size_t m) override;
   void set_output(size_t n, Tensor *T, size_t m) override;
@@ -156,7 +159,8 @@ private:
   size_t _inrank;
   size_t _outrank;
   // Flag which is set if this is the Hermitian conjugate of the
-  // underlying matrix.
+  // underlying matrix.  Functions which directly interact with matrix
+  // elements must check this flag and alter their behavior appropriately.
   bool _conjugate;
   // The following pointers represent arrays which encode the
   // placement of this tensor in the tensor network.  Specifically,
