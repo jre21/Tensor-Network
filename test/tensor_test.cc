@@ -201,8 +201,8 @@ TEST_F(TensorTest,Copying) {
   // create a double-conjugate copy and ensure it is equivalent to the
   // original
   Tensor *T2 = new ConcreteTensor{T1->matrix(true)};
-  TN_EXPECT_COMPLEX_EQ(T->entry( {2,1,5}, {3,1} ),
-		       T2->entry( {2,1,5}, {3,1} ));
+  TN_EXPECT_COMPLEX_EQ(T->entry( {3,1}, {2,1,5} ),
+		       T2->entry( {3,1}, {2,1,5} ));
 
   delete T0;
   delete T1;

@@ -15,8 +15,7 @@
 // along with Tensor Network.  If not, see
 // <http://www.gnu.org/licenses/>.
 
-#ifndef LOG_MSG_HH_
-#define LOG_MSG_HH_
+#pragma once
 
 #include <iostream>
 
@@ -62,5 +61,3 @@ class LogMsg {
  private:
   const LogSeverity severity_;
 };
-
-#endif // LOG_MSG_HH_

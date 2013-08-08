@@ -17,8 +17,7 @@
 
 // class representing a single tensor in the tensor network
 
-#ifndef TENSOR_HH_
-#define TENSOR_HH_
+#pragma once
 
 #include <complex>
 #include <initializer_list>
@@ -173,5 +172,3 @@ private:
   // The matrix itself.
   gsl_matrix_complex *_matrix;
 };
-
-#endif // TENSOR_HH_

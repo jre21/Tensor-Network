@@ -167,6 +167,8 @@ size_t ConcreteTensor::output_num(size_t n)
 Matrix ConcreteTensor::matrix(bool conjugate)
 {
   Matrix m;
+  // If conjugate is true, swap inputs and outputs, and invert
+  // _conjugate flag.
   if(!conjugate)
     {
       m.nin = _nin;

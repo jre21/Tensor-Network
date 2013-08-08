@@ -17,8 +17,7 @@
 
 // small utilities useful for unit tests
 
-#ifndef UTILS_TEST_HH_
-#define UTILS_TEST_HH_
+#pragma once
 
 #include <complex.h>
 #include <gtest/gtest.h>
@@ -29,5 +28,3 @@ void expect_complex_eq(const std::complex<double>& expected,
 
 #define TN_EXPECT_COMPLEX_EQ(expected, actual) \
   expect_complex_eq(expected, actual, __FILE__, __LINE__)
-
-#endif // UTILS_TEST_HH_

@@ -15,8 +15,7 @@
 // along with Tensor Network.  If not, see
 // <http://www.gnu.org/licenses/>.
 
-#ifndef MOCK_TENSOR_HH_
-#define MOCK_TENSOR_HH_
+#pragma once
 
 #include <gmock/gmock.h>
 #include "../tensor.hh"
@@ -52,5 +51,3 @@ public:
   MOCK_METHOD3(_set_input_self, void(size_t n, Tensor *T, size_t m));
   MOCK_METHOD3(_set_output_self, void(size_t n, Tensor *T, size_t m));
 };
-
-#endif // MOCK_TENSOR_HH_

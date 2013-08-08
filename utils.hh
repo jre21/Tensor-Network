@@ -17,8 +17,8 @@
 
 // small utilities
 
-#ifndef UTILS_HH_
-#define UTILS_HH_
+#pragma once
+
 #include <gsl/gsl_complex.h>
 #include <complex>
 
@@ -28,5 +28,3 @@ gsl_complex complex_to_gsl(const std::complex<double>& c);
 
 // generate a number's complex conjugate
 std::complex<double> conjugate(const std::complex<double>& c);
-
-#endif // UTILS_HH_
