@@ -431,9 +431,12 @@ void ConcreteTensor::_initialize(bool init_matrix)
 
   if(!init_matrix) return;
 
-  // If either vector space rank is 0, the matrix is empty.  We leave
-  // it null in this case.
-  if(_inrank != 0 && _outrank != 0)
+  // If the input (output) vector space is zero, the matrix is empty
+  // unless the tensor takes no inputs (outputs).  In this case just
+  // set the matrix to null.  For convenience in creating vectors,
+  // allow setting both the number of inputs (outputs) and the rank of
+  // the associated vector space to 0.
+  if( (_inrank != 0 || _nin == 0) && (_outrank != 0 || _nout == 0) )
     {
       // calculate powers by hand to avoid cast to floating point
       size_t in = 1, out = 1;
