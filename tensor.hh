@@ -21,21 +21,22 @@
 
 #include <complex>
 #include <initializer_list>
+#include <memory>
 #include <vector>
-#include <gsl/gsl_matrix.h>
+#include "gsl_matrix.hh"
 
 // Data format storing the information needed to reconstruct a tensor.
 // Note that setting conjugate indicates only that the complex
 // conjugate of matrix should be used.  Other variables should still
 // be used as-is.
-struct Matrix
+struct MatrixStruct
 {
   size_t nin;
   size_t nout;
   size_t inrank;
   size_t outrank;
   bool conjugate;
-  gsl_matrix_complex *matrix;
+  std::shared_ptr<Matrix> matrix;
 };
 
 // A single tensor in the tensor network.  Note that, when the tensor
@@ -76,7 +77,7 @@ public:
   // return a struct representing the matrix or its conjugate.  Note
   // that this is a shallow copy, but that a tensor object constructed
   // from it will not delete the underlying data when destructed.
-  virtual Matrix matrix(bool conjugate = false) = 0;
+  virtual MatrixStruct matrix(bool conjugate = false) = 0;
 protected:
   // Like set_(input|output) above, but setting only a single
   // direction.  The above should call these functions on both objects.
@@ -99,7 +100,7 @@ public:
   ConcreteTensor(size_t nin, size_t nout, size_t inrank, size_t outrank);
   ConcreteTensor(size_t nin, size_t nout, size_t rank)
     : ConcreteTensor(nin, nout, rank, rank) {}
-  ConcreteTensor(Matrix m);
+  ConcreteTensor(MatrixStruct m);
   ConcreteTensor& operator=(const Tensor&) = delete;
   ConcreteTensor(const Tensor&) = delete;
   ~ConcreteTensor();
@@ -122,7 +123,7 @@ public:
   Tensor* output_tensor(size_t n) override;
   size_t input_num(size_t n) override;
   size_t output_num(size_t n) override;
-  Matrix matrix(bool conjugate = false) override;
+  MatrixStruct matrix(bool conjugate = false) override;
 protected:
   // Methods interacting directly with underlying data.
   std::complex<double> _entry(const std::vector<size_t>& in,
@@ -170,5 +171,5 @@ private:
   std::vector<size_t> _indest;
   std::vector<size_t> _outdest;
   // The matrix itself.
-  gsl_matrix_complex *_matrix;
+  std::shared_ptr<Matrix> _matrix;
 };

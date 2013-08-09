@@ -15,7 +15,7 @@
 // along with Tensor Network.  If not, see
 // <http://www.gnu.org/licenses/>.
 
-#include <stdlib.h>
+#include <cstdlib>
 #include "log_msg.hh"
 
 using std::endl;

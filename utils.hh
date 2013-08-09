@@ -19,12 +19,7 @@
 
 #pragma once
 
-#include <gsl/gsl_complex.h>
 #include <complex>
-
-// convert between C++ and GSL representations of complex numbers
-std::complex<double> complex_from_gsl(const gsl_complex& c);
-gsl_complex complex_to_gsl(const std::complex<double>& c);
 
 // generate a number's complex conjugate
 std::complex<double> conjugate(const std::complex<double>& c);

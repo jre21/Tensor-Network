@@ -15,14 +15,13 @@
 // along with Tensor Network.  If not, see
 // <http://www.gnu.org/licenses/>.
 
-#include <math.h>
-#include <gsl/gsl_complex.h>
 #include "log_msg.hh"
 #include "tensor.hh"
 #include "utils.hh"
 
 using std::complex;
 using std::initializer_list;
+using std::shared_ptr;
 using std::vector;
 
 // ########################### constructor ###########################
@@ -34,7 +33,7 @@ ConcreteTensor::ConcreteTensor(size_t nin, size_t nout,
   _initialize(true);
 }
 
-ConcreteTensor::ConcreteTensor(Matrix m)
+ConcreteTensor::ConcreteTensor(MatrixStruct m)
   : _nin{m.nin}, _nout{m.nout}, _inrank{m.inrank},
     _outrank{m.outrank}, _conjugate{m.conjugate}, _matrix{m.matrix}
 {
@@ -50,8 +49,6 @@ ConcreteTensor::~ConcreteTensor()
 	_unset_input(i);
       for(size_t i = 0; i < _nout; ++i)
 	_unset_output(i);
-      gsl_matrix_complex_free(_matrix);
-      _matrix = nullptr;
     }
 }
 
@@ -164,9 +161,9 @@ size_t ConcreteTensor::output_num(size_t n)
 }
 
 // ########################### matrix ################################
-Matrix ConcreteTensor::matrix(bool conjugate)
+MatrixStruct ConcreteTensor::matrix(bool conjugate)
 {
-  Matrix m;
+  MatrixStruct m;
   // If conjugate is true, swap inputs and outputs, and invert
   // _conjugate flag.
   if(!conjugate)
@@ -187,8 +184,7 @@ Matrix ConcreteTensor::matrix(bool conjugate)
     }
   // Create a copy of the initial matrix which won't delete the
   // underlying data when destroyed.
-  m.matrix = gsl_matrix_complex_alloc_from_matrix 
-    ( _matrix, 0, 0, _matrix->size1, _matrix->size2 );
+  m.matrix = shared_ptr<Matrix>{_matrix};
 
   return m;
 }
@@ -198,16 +194,12 @@ complex<double> ConcreteTensor::_entry(const vector<size_t>& in,
 			       const vector<size_t>& out)
 {
   if(!_conjugate)
-    return complex_from_gsl(gsl_matrix_complex_get
-			    ( _matrix, _pack_input(in),
-			      _pack_output(out) ) );
+    return  _matrix->get( _pack_input(in), _pack_output(out) );
   else
     // Exchange rows and columns and take the complex conjugate to
     // simulate retrieving data from the Hermitian conjugate of the
     // underlying matrix.
-    return conjugate(complex_from_gsl(gsl_matrix_complex_get
-				      ( _matrix, _pack_output(out),
-					_pack_input(in) ) ));
+    return conjugate(_matrix->get( _pack_output(out), _pack_input(in) ));
 }
 
 // ########################### _set_entry ############################
@@ -215,15 +207,12 @@ void ConcreteTensor::_set_entry(const vector<size_t>& in,
 				const vector<size_t>& out, complex<double> val)
 {
   if(!_conjugate)
-    gsl_matrix_complex_set( _matrix, _pack_input(in),
-			    _pack_output(out), complex_to_gsl(val) );
+    _matrix->set(_pack_input(in), _pack_output(out), val );
   else
     // exchange rows and columns and take the complex conjugate to
     // simulate retrieving data from the Hermitian conjugate of the
     // underlying matrix
-    gsl_matrix_complex_set( _matrix, _pack_output(out),
-			    _pack_input(in),
-			    complex_to_gsl(conjugate(val)) );
+    _matrix->set( _pack_output(out), _pack_input(in), conjugate(val) );
 }
 
 // ########################### _pack_input ###########################
@@ -447,12 +436,9 @@ void ConcreteTensor::_initialize(bool init_matrix)
   if(_inrank != 0 && _outrank != 0)
     {
       // calculate powers by hand to avoid cast to floating point
-      int in = 1, out = 1;
+      size_t in = 1, out = 1;
       for (size_t i=0; i<_nin; i++) in *= _inrank;
       for (size_t i=0; i<_nout; i++) out *= _outrank;
-      _matrix = gsl_matrix_complex_alloc(in, out);
-      gsl_matrix_complex_set_identity(_matrix);
+      _matrix = shared_ptr<Matrix> {new GSLMatrix{in,out}};
     }
-  else
-    _matrix = nullptr;
 }

@@ -34,7 +34,7 @@ targets = release testing debug
 
 # object files to generate, should be named ${foo}.o where source file
 # is ${foo}.c
-_OBJ = tensor utils log_msg
+_OBJ = tensor utils log_msg gsl_matrix
 OBJ = $(patsubst %,$(target)/%.o,$(_OBJ))
 ALL_OBJ = $(foreach foo,$(targets),$(patsubst %,$(foo)/%.o,$(_OBJ)))
 # file containing main() (excluded from test binary, which defines its
