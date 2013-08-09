@@ -24,7 +24,7 @@ class MockTensor : public Tensor
 {
 public:
   MockTensor();
-  virtual ~MockTensor();
+  ~MockTensor();
   MOCK_METHOD0(input_rank, size_t());
   MOCK_METHOD0(output_rank, size_t());
   MOCK_METHOD2(entry, std::complex<double>

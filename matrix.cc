@@ -20,7 +20,7 @@
 #define GSL_RANGE_CHECK_OFF
 #endif
 
-#include "gsl_matrix.hh"
+#include "matrix.hh"
 
 using std::complex;
 

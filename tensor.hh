@@ -23,7 +23,7 @@
 #include <initializer_list>
 #include <memory>
 #include <vector>
-#include "gsl_matrix.hh"
+#include "matrix.hh"
 
 // Data format storing the information needed to reconstruct a tensor.
 // Note that setting conjugate indicates only that the complex

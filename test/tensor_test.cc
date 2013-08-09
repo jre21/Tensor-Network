@@ -17,13 +17,15 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include "mock_tensor.hh"
 #include "../tensor.hh"
 #include "../utils.hh"
+#include "mock_matrix.hh"
+#include "mock_tensor.hh"
 #include "utils_test.hh"
 
-using std::vector;
 using std::complex;
+using std::shared_ptr;
+using std::vector;
 
 using ::testing::AtLeast;
 using ::testing::Mock;
@@ -90,7 +92,7 @@ TEST_F(TensorDeathTest,Entry) {
 // outputs)
 TEST_F(TensorTest,Vector) {
   complex<double> c = complex<double> {2.3, 1.5};
-  Tensor* vec = new ConcreteTensor {2, 0, 6, 0};
+  Tensor *vec = new ConcreteTensor {2, 0, 6, 0};
   vec->set_entry( {1,0}, {}, c );
   TN_EXPECT_COMPLEX_EQ( c, vec->entry( {1,0}, {} ));
 
@@ -98,7 +100,7 @@ TEST_F(TensorTest,Vector) {
 }
 
 TEST_F(TensorDeathTest,Vector) {
-  Tensor* vec = new ConcreteTensor {2, 0, 6, 0};
+  Tensor *vec = new ConcreteTensor {2, 0, 6, 0};
   EXPECT_DEATH(vec->set_entry( {0,0}, {0}, complex<double>{} ), "");
   EXPECT_DEATH(vec->entry( {0,0}, {0} ), "");
 }
@@ -165,12 +167,12 @@ TEST_F(TensorDeathTest,Linking) {
   EXPECT_CALL(mock, input_rank())
     .Times(0);
   EXPECT_CALL(mock, output_rank())
-    .Times(AtLeast(0)).WillOnce(Return(5));
+    .Times(AtLeast(0)).WillRepeatedly(Return(5));
   EXPECT_DEATH(t->set_input(0,&mock,0), "");
 
   // same, but linking on output rather than input
   EXPECT_CALL(mock, input_rank())
-    .Times(AtLeast(0)).WillOnce(Return(5));
+    .Times(AtLeast(0)).WillRepeatedly(Return(5));
   EXPECT_CALL(mock, output_rank())
     .Times(0);
   EXPECT_DEATH(t->set_output(0,&mock,0), "");
@@ -228,4 +230,37 @@ TEST_F(TensorTest,Conjugate) {
 
   delete tc;
   delete tcc;
+}
+
+// When multiple tensors share a matrix, ensure the matrix is retained
+// until all tensors are deleted.
+TEST_F(TensorTest,MatrixDeletion) {
+  // inject a mock matrix into the struct used to construct new
+  // tensors
+  MockMatrix *mock = new MockMatrix;
+  EXPECT_CALL(*mock, die())
+    .Times(0);
+  MatrixStruct mock_struct = t->matrix();
+  mock_struct.matrix = shared_ptr<Matrix> {mock};
+
+  // generate a few tensors and check for deletion at appropriate time
+  Tensor *t1 = new ConcreteTensor(mock_struct);
+  Tensor *t2 = new ConcreteTensor(mock_struct);
+  mock_struct.matrix.reset();
+
+  delete t1;
+  EXPECT_CALL(*mock, die());
+  delete t2;
+
+  // test again with deletion in reverse order
+  mock = new MockMatrix;
+  EXPECT_CALL(*mock, die())
+    .Times(0);
+  mock_struct.matrix.reset(mock);
+  t1 = new ConcreteTensor(mock_struct);
+  t2 = new ConcreteTensor(mock_struct);
+
+  delete t2;
+  EXPECT_CALL(*mock, die());
+  delete t1;
 }
