@@ -17,9 +17,23 @@
 
 #pragma once
 
+#include <array>
 #include <iterator>
+#include <unordered_set>
 
+// forward declare to avoid dependencies between headers
 class Tensor;
+
+// define needed hash function overload
+template <>
+struct std::hash<std::array<Tensor*,2>>
+{
+  size_t operator() (std::array<Tensor*,2> arr)
+  {
+    std::hash<Tensor*> hash;
+    return hash(arr[0]) ^ hash(arr[1]);
+  }
+};
 
 class Graph
 {
@@ -31,37 +45,37 @@ public:
   // The following four functions are iterators for use with functions
   // which need to act on either all tensors or all links.  No
   // guarantees are made about ordering.
-  virtual std::iterator<std::input_iterator_tag, Tensor*> tensor_begin() = 0;
-  virtual std::iterator<std::input_iterator_tag, Tensor*> tensor_end() = 0;
-  virtual std::iterator<std::input_iterator_tag, pair<Tensor*,Tensor*> >
-    vertex_begin() = 0;
-  virtual std::iterator<std::input_iterator_tag, pair<Tensor*,Tensor*> >
-    vertex_end() = 0;
+  virtual std::unordered_set<Tensor*>::const_iterator tensor_begin() = 0;
+  virtual std::unordered_set<Tensor*>::const_iterator tensor_end() = 0;
+  virtual std::unordered_set<std::array<Tensor*,2> >::const_iterator
+  vertex_begin() = 0;
+  virtual std::unordered_set<std::array<Tensor*,2> >::const_iterator
+  vertex_end() = 0;
 };
 
-class ConcreteGraph : public Graph
+class DFSGraph : public Graph
 {
 public:
   // Create the graph of all tensors connected to t.
-  Graph(Tensor *t);
-  ~Graph() {}
+  DFSGraph(Tensor *t);
+  ~DFSGraph();
   // From interface Graph.
   void rebuild() override;
-  std::iterator<std::input_iterator_tag, Tensor*> tensor_begin() override;
-  std::iterator<std::input_iterator_tag, Tensor*> tensor_end() override;
-  std::iterator<std::input_iterator_tag, pair<Tensor*,Tensor*> >
-    vertex_begin() override;
-  std::iterator<std::input_iterator_tag, pair<Tensor*,Tensor*> >
-    vertex_end() override;
+  std::unordered_set<Tensor*>::const_iterator tensor_begin() override;
+  std::unordered_set<Tensor*>::const_iterator tensor_end() override;
+  std::unordered_set<std::array<Tensor*,2> >::const_iterator
+  vertex_begin() override;
+  std::unordered_set<std::array<Tensor*,2> >::const_iterator
+  vertex_end() override;
 protected:
   // function which is called recursively to find all connected
   // tensors via depth-first search
   void _dfs(Tensor *t);
 private:
   // tensors which have not yet been processed
-  unordered_set<Tensor*> discovered;
+  std::unordered_set<Tensor*> _discovered;
   // tensors which belong to the graph
-  unordered_set<Tensor*> nodes;
+  std::unordered_set<Tensor*> _nodes;
   // vertices connecting tensors
-  unordered_set<pair<Tensor*,Tensor*> > vertices;
+  std::unordered_set<std::array<Tensor*,2> > _vertices;
 };

@@ -15,7 +15,7 @@ endif # target != release
 CPPFLAGS = -std=c++11 -pthread -DHAVE_INLINE
 CXXFLAGS = -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual \
            -Wcast-align -Wwrite-strings -fshort-enums -fno-common \
-           -pedantic -stdlib=libc++ -march=native
+           -stdlib=libc++ -march=native
 LDFLAGS = -stdlib=libc++ -fuse-ld=gold
 LDLIBS = -ltcmalloc -lgsl -lcblas -latlas -lm -lpthread
 
@@ -28,13 +28,12 @@ CXXFLAGS += -O2 -fvectorize
 endif # target == testing
 ifeq "$(target)" "debug"
 CXXFLAGS += -g -O0 -DDEBUG=1
-
 endif # target == debug
 targets = release testing debug
 
 # object files to generate, should be named ${foo}.o where source file
 # is ${foo}.c
-_OBJ = tensor matrix utils log_msg
+_OBJ = graph log_msg matrix tensor utils
 OBJ = $(patsubst %,$(target)/%.o,$(_OBJ))
 ALL_OBJ = $(foreach foo,$(targets),$(patsubst %,$(foo)/%.o,$(_OBJ)))
 # file containing main() (excluded from test binary, which defines its
@@ -50,7 +49,7 @@ _TESTS = tensor utils
 TESTS = $(patsubst %,$(target)/%$(TSUF).o,$(_TESTS))
 ALL_TESTS = $(foreach foo,$(targets),$(patsubst %,$(foo)/%$(TSUF).o,$(_TESTS)))
 MPRE = mock_
-_MOCKS = tensor matrix
+_MOCKS = matrix tensor
 MOCKS = $(patsubst %,$(target)/$(MPRE)%.o,$(_MOCKS))
 ALL_MOCKS = $(foreach foo,$(targets),$(patsubst %,$(foo)/$(MPRE)%.o,$(_MOCKS)))
 
