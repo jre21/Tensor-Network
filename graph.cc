@@ -41,56 +41,45 @@ bool GraphEdge::operator!= (const GraphEdge &v) const
 
 // ########################### DFSGraph ##############################
 // ########################### constructor ###########################
-DFSGraph::DFSGraph(Tensor *T)
+DFSGraph::DFSGraph(Tensor *t)
 {
-}
-
-// ########################### destructor ############################
-DFSGraph::~DFSGraph()
-{
-#warning undefined function
+  _dfs(t);
 }
 
 // ########################### vertices ##############################
 size_t DFSGraph::vertices()
 {
-#warning undefined function
-  return 0;
+  return _vertices.size();
 }
 
 // ########################### edges #################################
 size_t DFSGraph::edges()
 {
-#warning undefined function
-  return 0;
+  return _edges.size();
 }
 
 // ########################### vertex_begin ##########################
 unordered_set<Tensor*>::const_iterator DFSGraph::vertex_begin()
 {
-#warning undefined function
-  return unordered_set<Tensor*>::const_iterator{};
+  return _vertices.cbegin();
 }
 
 // ########################### vertex_end ############################
 unordered_set<Tensor*>::const_iterator DFSGraph::vertex_end()
 {
-#warning undefined function
-  return unordered_set<Tensor*>::const_iterator{};
+  return _vertices.cend();
 }
 
 // ########################### edge_begin ############################
 unordered_set<GraphEdge>::const_iterator DFSGraph::edge_begin()
 {
-#warning undefined function
-  return unordered_set<GraphEdge>::const_iterator{};
+  return _edges.cbegin();
 }
 
 // ########################### edge_end ##############################
 unordered_set<GraphEdge>::const_iterator DFSGraph::edge_end()
 {
-#warning undefined function
-  return unordered_set<GraphEdge>::const_iterator{};
+  return _edges.cend();
 }
 
 // ########################### _dfs ##################################

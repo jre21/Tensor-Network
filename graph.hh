@@ -80,7 +80,6 @@ public:
   DFSGraph(const DFSGraph&) = default;
   DFSGraph& operator=(DFSGraph&&) = default;
   DFSGraph(DFSGraph&&) = default;
-  ~DFSGraph();
   // From interface Graph.
   size_t vertices() override;
   size_t edges() override;
@@ -96,7 +95,7 @@ private:
   // tensors which have not yet been processed
   std::unordered_set<Tensor*> _discovered;
   // tensors which belong to the graph
-  std::unordered_set<Tensor*> _nodes;
-  // vertices connecting tensors
-  std::unordered_set<GraphEdge> _vertices;
+  std::unordered_set<Tensor*> _vertices;
+  // edges connecting tensors
+  std::unordered_set<GraphEdge> _edges;
 };
