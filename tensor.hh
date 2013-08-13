@@ -23,7 +23,9 @@
 #include <initializer_list>
 #include <memory>
 #include <vector>
-#include "matrix.hh"
+
+// forward declare to avoid dependencies between headers
+class Matrix;
 
 // Data format storing the information needed to reconstruct a tensor.
 // Note that setting conjugate indicates only that the complex
@@ -101,8 +103,8 @@ public:
   ConcreteTensor(size_t nin, size_t nout, size_t rank)
     : ConcreteTensor(nin, nout, rank, rank) {}
   ConcreteTensor(MatrixStruct m);
-  ConcreteTensor& operator=(const Tensor&) = delete;
-  ConcreteTensor(const Tensor&) = delete;
+  ConcreteTensor& operator=(const ConcreteTensor&) = delete;
+  ConcreteTensor(const ConcreteTensor&) = delete;
   ~ConcreteTensor();
   // From interface Tensor.
   size_t input_rank() override;

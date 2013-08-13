@@ -16,6 +16,7 @@
 // <http://www.gnu.org/licenses/>.
 
 #include "log_msg.hh"
+#include "matrix.hh"
 #include "tensor.hh"
 #include "utils.hh"
 

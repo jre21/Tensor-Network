@@ -45,7 +45,7 @@ ALL_MAIN = $(foreach foo,$(targets),$(patsubst %,$(foo)/%.o,$(_MAIN)))
 # and placed in TDIR
 TDIR = test
 TSUF = _test
-_TESTS = tensor utils
+_TESTS = graph tensor utils
 TESTS = $(patsubst %,$(target)/%$(TSUF).o,$(_TESTS))
 ALL_TESTS = $(foreach foo,$(targets),$(patsubst %,$(foo)/%$(TSUF).o,$(_TESTS)))
 MPRE = mock_

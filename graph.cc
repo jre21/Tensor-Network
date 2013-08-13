@@ -17,12 +17,29 @@
 
 #include <functional>
 #include "graph.hh"
+#include "tensor.hh"
 
-using std::array;
 using std::hash;
 using std::iterator;
 using std::unordered_set;
 
+// ########################### GraphEdge ################################
+// ########################### operator== ############################
+bool GraphEdge::operator== (const GraphEdge &v) const
+{
+  return input_tensor == v.input_tensor && input_num == v.input_num
+    && output_tensor == v.output_tensor && output_num == v.output_num;
+}
+
+// ########################### operator!= ############################
+bool GraphEdge::operator!= (const GraphEdge &v) const
+{
+  return input_tensor != v.input_tensor || input_num != v.input_num
+    || output_tensor != v.output_tensor || output_num != v.output_num;
+}
+
+
+// ########################### DFSGraph ##############################
 // ########################### constructor ###########################
 DFSGraph::DFSGraph(Tensor *T)
 {
@@ -34,38 +51,46 @@ DFSGraph::~DFSGraph()
 #warning undefined function
 }
 
-// ########################### rebuild ###############################
-void DFSGraph::rebuild()
+// ########################### vertices ##############################
+size_t DFSGraph::vertices()
 {
 #warning undefined function
+  return 0;
 }
 
-// ########################### tensor_begin ##########################
-unordered_set<Tensor*>::const_iterator DFSGraph::tensor_begin()
+// ########################### edges #################################
+size_t DFSGraph::edges()
 {
 #warning undefined function
-  return unordered_set<Tensor*>::const_iterator{};
-}
-
-// ########################### tensor_end ############################
-unordered_set<Tensor*>::const_iterator DFSGraph::tensor_end()
-{
-#warning undefined function
-  return unordered_set<Tensor*>::const_iterator{};
+  return 0;
 }
 
 // ########################### vertex_begin ##########################
-unordered_set<array<Tensor*,2> >::const_iterator DFSGraph::vertex_begin()
+unordered_set<Tensor*>::const_iterator DFSGraph::vertex_begin()
 {
 #warning undefined function
-  return unordered_set<array<Tensor*,2> >::const_iterator{};
+  return unordered_set<Tensor*>::const_iterator{};
 }
 
 // ########################### vertex_end ############################
-unordered_set<array<Tensor*,2> >::const_iterator DFSGraph::vertex_end()
+unordered_set<Tensor*>::const_iterator DFSGraph::vertex_end()
 {
 #warning undefined function
-  return unordered_set<array<Tensor*,2> >::const_iterator{};
+  return unordered_set<Tensor*>::const_iterator{};
+}
+
+// ########################### edge_begin ############################
+unordered_set<GraphEdge>::const_iterator DFSGraph::edge_begin()
+{
+#warning undefined function
+  return unordered_set<GraphEdge>::const_iterator{};
+}
+
+// ########################### edge_end ##############################
+unordered_set<GraphEdge>::const_iterator DFSGraph::edge_end()
+{
+#warning undefined function
+  return unordered_set<GraphEdge>::const_iterator{};
 }
 
 // ########################### _dfs ##################################
