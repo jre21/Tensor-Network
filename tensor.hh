@@ -76,7 +76,11 @@ public:
   virtual Tensor* output_tensor(size_t n) = 0;
   virtual size_t input_num(size_t n) = 0;
   virtual size_t output_num(size_t n) = 0;
-  // return a struct representing the matrix or its conjugate.  Note
+  // Expose number of inputs and outputs as well as iterators, to
+  // allow batch operation on all inputs/outputs
+  virtual size_t inputs() = 0;
+  virtual size_t outputs() = 0;
+  // Return a struct representing the matrix or its conjugate.  Note
   // that this is a shallow copy, but that a tensor object constructed
   // from it will not delete the underlying data when destructed.
   virtual MatrixStruct matrix(bool conjugate = false) = 0;
@@ -125,6 +129,8 @@ public:
   Tensor* output_tensor(size_t n) override;
   size_t input_num(size_t n) override;
   size_t output_num(size_t n) override;
+  size_t inputs() override;
+  size_t outputs() override;
   MatrixStruct matrix(bool conjugate = false) override;
 protected:
   // Methods interacting directly with underlying data.

@@ -20,10 +20,10 @@
 #include <iterator>
 #include <unordered_set>
 
-// forward declare to avoid dependencies between headers
+// Forward declare to avoid dependencies between headers.
 class Tensor;
 
-// struct to represent the edges of a graph
+// Struct to represent the edges of a graph.
 struct GraphEdge
 {
   Tensor *input_tensor;
@@ -65,10 +65,11 @@ public:
   // guarantees are made about ordering.
   virtual std::unordered_set<Tensor*>::const_iterator vertex_begin() = 0;
   virtual std::unordered_set<Tensor*>::const_iterator vertex_end() = 0;
-  virtual std::unordered_set<GraphEdge>::const_iterator
-  edge_begin() = 0;
-  virtual std::unordered_set<GraphEdge>::const_iterator
-  edge_end() = 0;
+  virtual std::unordered_set<GraphEdge>::const_iterator edge_begin() = 0;
+  virtual std::unordered_set<GraphEdge>::const_iterator edge_end() = 0;
+  // Iterators for endpoints (unlinked tensors).
+  virtual std::unordered_set<GraphEdge>::const_iterator endpt_begin() = 0;
+  virtual std::unordered_set<GraphEdge>::const_iterator endpt_end() = 0;
 };
 
 class DFSGraph : public Graph
@@ -87,15 +88,17 @@ public:
   std::unordered_set<Tensor*>::const_iterator vertex_end() override;
   std::unordered_set<GraphEdge>::const_iterator edge_begin() override;
   std::unordered_set<GraphEdge>::const_iterator edge_end() override;
+  std::unordered_set<GraphEdge>::const_iterator endpt_begin() override;
+  std::unordered_set<GraphEdge>::const_iterator endpt_end() override;
 protected:
-  // function which is called recursively to find all connected
-  // tensors via depth-first search
+  // Function which is called recursively to find all connected
+  // tensors via depth-first search.
   void _dfs(Tensor *t);
 private:
-  // tensors which have not yet been processed
-  std::unordered_set<Tensor*> _discovered;
-  // tensors which belong to the graph
+  // Tensors which belong to the graph.
   std::unordered_set<Tensor*> _vertices;
-  // edges connecting tensors
+  // Edges connecting tensors.
   std::unordered_set<GraphEdge> _edges;
+  // Tensors with detached inputs or outputs.
+  std::unordered_set<GraphEdge> _endpts;
 };

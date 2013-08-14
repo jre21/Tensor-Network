@@ -114,7 +114,7 @@ include $(patsubst %,%.d,$(_OBJ)) $(patsubst %,%.d,$(_MAIN)) \
 # generate dependency information
 %.d	:	%.cc
 	@set -e; rm -f $@; \
-         $(CC) -M $(CPPFLAGS) $< > $@.$$$$; \
+         $(CC) -MM -MP $(CPPFLAGS) $< > $@.$$$$; \
          sed 's,\($(*F)\)\.o[ :]*,$(target)/\1.o $@ : ,g' < $@.$$$$ > $@; \
          rm -f $@.$$$$
 

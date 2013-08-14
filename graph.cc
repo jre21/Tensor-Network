@@ -82,7 +82,48 @@ unordered_set<GraphEdge>::const_iterator DFSGraph::edge_end()
   return _edges.cend();
 }
 
+// ########################### endpt_begin ###########################
+unordered_set<GraphEdge>::const_iterator DFSGraph::endpt_begin()
+{
+  return _endpts.cbegin();
+}
+
+// ########################### endpt_end #############################
+unordered_set<GraphEdge>::const_iterator DFSGraph::endpt_end()
+{
+  return _endpts.cend();
+}
+
 // ########################### _dfs ##################################
 void DFSGraph::_dfs(Tensor *t)
 {
+  // add to "unprocessed" list
+  _vertices.insert(t);
+
+  for(size_t i = 0; i < t->inputs(); ++i)
+    {
+      // process all tensors linked via inputs and outputs
+      Tensor *adj = t->input_tensor(i);
+      if(nullptr != adj)
+	{
+	  // Record the discovered edge, and recurse into the adjacent
+	  // tensor if it has not been previously encountered.
+	  if( !_vertices.count(adj) ) _dfs(adj);
+	  _edges.insert(GraphEdge{t, i, adj, t->input_num(i)});
+	}
+      else _endpts.insert(GraphEdge{t, i, nullptr, 0});
+    }
+
+  for(size_t i = 0; i < t->outputs(); ++i)
+    {
+      // If the adjacent tensor has not yet been encountered, register
+      // the edge and recurse into it.  The edge has been / will be
+      // recorded when processing in the opposite direction.
+      Tensor *adj = t->output_tensor(i);
+      if(nullptr != adj)
+	{
+	  if(!_vertices.count(adj)) _dfs(adj);
+	}
+      else _endpts.insert(GraphEdge{nullptr, 0, t, i});
+    }
 }

@@ -46,7 +46,7 @@ TEST(GraphTest,BuildGraph) {
   t0->set_input(1,t2,1);
   t1->set_input(0,t3,1);
   t2->set_output(0,t3,1);
-  t3->set_input(1,t4,0);
+  t3->set_output(0,t4,1);
   t1->set_output(1,t2,0);
 
   // build and check graph
@@ -54,6 +54,7 @@ TEST(GraphTest,BuildGraph) {
 
   unordered_set<Tensor*> vertices(graph.vertex_begin(), graph.vertex_end());
   unordered_set<GraphEdge> edges(graph.edge_begin(), graph.edge_end());
+  unordered_set<GraphEdge> endpts(graph.endpt_begin(), graph.endpt_end());
 
   EXPECT_EQ(5, vertices.size());
   EXPECT_EQ(1, vertices.count(t0));
@@ -67,8 +68,18 @@ TEST(GraphTest,BuildGraph) {
   EXPECT_EQ(1, edges.count(GraphEdge{t0,1,t2,1}));
   EXPECT_EQ(1, edges.count(GraphEdge{t1,0,t3,1}));
   EXPECT_EQ(1, edges.count(GraphEdge{t3,1,t2,0}));
-  EXPECT_EQ(1, edges.count(GraphEdge{t3,1,t4,0}));
+  EXPECT_EQ(1, edges.count(GraphEdge{t4,1,t3,0}));
   EXPECT_EQ(1, edges.count(GraphEdge{t2,0,t1,1}));
+
+  EXPECT_EQ(8, endpts.size());
+  EXPECT_EQ(1, endpts.count(GraphEdge{nullptr,0,t0,0}));
+  EXPECT_EQ(1, endpts.count(GraphEdge{nullptr,0,t0,1}));
+  EXPECT_EQ(1, endpts.count(GraphEdge{t1,1,nullptr,0}));
+  EXPECT_EQ(1, endpts.count(GraphEdge{t2,1,nullptr,0}));
+  EXPECT_EQ(1, endpts.count(GraphEdge{t3,0,nullptr,0}));
+  EXPECT_EQ(1, endpts.count(GraphEdge{t4,0,nullptr,0}));
+  EXPECT_EQ(1, endpts.count(GraphEdge{nullptr,0,t4,0}));
+  EXPECT_EQ(1, endpts.count(GraphEdge{nullptr,0,t4,1}));
 
   delete t0;
   delete t1;

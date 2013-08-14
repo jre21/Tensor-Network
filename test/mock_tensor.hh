@@ -47,6 +47,8 @@ public:
   MOCK_METHOD1(output_tensor, Tensor*(size_t n));
   MOCK_METHOD1(input_num, size_t(size_t n));
   MOCK_METHOD1(output_num, size_t(size_t n));
+  MOCK_METHOD0(inputs, size_t());
+  MOCK_METHOD0(outputs, size_t());
   MOCK_METHOD1(matrix, MatrixStruct(bool conjugate));
   MOCK_METHOD3(_set_input_self, void(size_t n, Tensor *T, size_t m));
   MOCK_METHOD3(_set_output_self, void(size_t n, Tensor *T, size_t m));

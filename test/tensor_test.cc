@@ -107,6 +107,10 @@ TEST_F(TensorDeathTest,Vector) {
 
 // test linking tensors together
 TEST_F(TensorTest,Linking) {
+  // verify number of inputs and outputs
+  EXPECT_EQ(2, t->inputs());
+  EXPECT_EQ(3, t->outputs());
+
   // verify input link is set correctly
   EXPECT_CALL(mock, _set_output_self(2,t,1));
   EXPECT_CALL(mock, output_rank())

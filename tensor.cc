@@ -161,6 +161,18 @@ size_t ConcreteTensor::output_num(size_t n)
   return _outdest[n];
 }
 
+// ########################### inputs ################################
+size_t ConcreteTensor::inputs()
+{
+  return _nin;
+}
+
+// ########################### inputs ################################
+size_t ConcreteTensor::outputs()
+{
+  return _nout;
+}
+
 // ########################### matrix ################################
 MatrixStruct ConcreteTensor::matrix(bool conjugate)
 {
