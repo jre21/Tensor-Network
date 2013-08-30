@@ -5,10 +5,8 @@ review article from 2011 can be found at [1].
 
 [1] http://arxiv.org/abs/1106.1082.
 
-This program compiles by default with clang, libc++, and libtcmalloc,
-and ATLAS.  GNU Scientific Library is *required*, and the unit tests
-utilize the Google Test framework and Google Mock.
-
-On a Debian system, all dependencies can be satisfied by installing
-the following packages: clang, llvm-dev, libc++-dev, libc++abi-dev,
-libgoogle-perftools-dev, libatlas-base-dev, libgsl0dev, google-mock
+This program compiles by default with clang, libc++, and libtcmalloc.
+GNU Scientific Library is *required*, and the unit tests utilize the
+Google Test framework and Google Mock.  Currently gsl's internal cblas
+is used.  Ideally, this should be replaced with a more optimized
+implementation.

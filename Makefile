@@ -3,7 +3,7 @@ SHELL = /bin/sh
 # version of c++ utilities
 CXX = clang++
 LINK = clang++
-DB = lldb-3.3
+DB = lldb
 
 ifneq "$(target)" "release"
 ifneq "$(target)" "debug"
@@ -12,12 +12,12 @@ endif # target != debug
 endif # target != release
 
 # compiler flags
-CPPFLAGS = -std=c++11 -pthread -DHAVE_INLINE
+CPPFLAGS = -std=c++11 -pthread -DHAVE_INLINE -DGTEST_USE_OWN_TR1_TUPLE
 CXXFLAGS = -Wall -Wextra -Wshadow -Wpointer-arith -Wcast-qual \
            -Wcast-align -Wwrite-strings -fshort-enums -fno-common \
            -stdlib=libc++ -march=native
 LDFLAGS = -stdlib=libc++ -fuse-ld=gold
-LDLIBS = -ltcmalloc -lgsl -lcblas -latlas -lm -lpthread
+LDLIBS = -lc++abi -ltcmalloc -lgsl -lgslcblas -lm -lpthread
 
 ifeq "$(target)" "release"
 # add -DNO_ERROR_CHECKING to remove internal error checks
