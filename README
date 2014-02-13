@@ -9,7 +9,8 @@ decision to leave graduate school.
 
 This program compiles by default with clang, libc++, and libtcmalloc.
 GNU Scientific Library is *required*, and the unit tests utilize the
-Google Test framework and Google Mock.  Currently GSL's internal cblas
+Google Test framework and Google Mock.  C++11 constructs are used
+extensively throughout this project.  Currently GSL's internal cblas
 is used.  Ideally, this should be replaced with a more optimized
 implementation.  (In practice, the code has not reached the stage
 where the blas library would be hooked in.)
